@@ -1,0 +1,15 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/check"
+  to = "/.netlify/functions/check"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/validate"
+  to = "/.netlify/functions/validate"
+  status = 200
+  force = true

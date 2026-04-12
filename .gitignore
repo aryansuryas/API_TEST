@@ -5,6 +5,8 @@ yarn-debug.log*
 yarn-error.log*
 package-lock.json
 
+# ── NOTE: public/ and netlify/ are intentionally tracked ──────
+
 # ── Environment & Secrets ──────────────────────────────────────
 .env
 .env.*

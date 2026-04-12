@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"/>
+  <title>API SENTINEL — Mission Control</title>
+  <meta name="description" content="API Sentinel — Real-time API health monitoring, latency measurement, and status validation dashboard."/>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@400;500;600;700;800;900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400;1,700&family=Domine:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#000000",
+            "on-primary": "#ffffff",
+            "primary-container": "#131b2e",
+            "on-primary-container": "#7c839b",
+            "background": "#FBF3D1",
+            "surface": "#FBF3D1",
+            "surface-container-low": "#f8f0cc",
+            "surface-container": "#f4eebd",
+            "surface-container-high": "#ede7b4",
+            "surface-container-highest": "#f0ebde",
+            "surface-variant": "#e4e4cc",
+            "on-surface": "#1b1d0e",
+            "error": "#ba1a1a",
+            "error-container": "#ffdad6",
+            "on-error": "#ffffff",
+            "secondary": "#006d36",
+            "green-pip": "#10b981",
+          },
+          fontFamily: {
+            "headline": ["Space Grotesk", "sans-serif"],
+            "body": ["Inter", "sans-serif"],
+            "libre": ["Libre Baskerville", "Georgia", "serif"],
+            "domine": ["Domine", "Georgia", "serif"],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .glow-green  { box-shadow: 0 0 10px #1a7a3a; }
+    .glow-error  { box-shadow: 0 0 10px #ef4444; }
+    .scanline {
+      background: linear-gradient(to bottom, transparent 50%, rgba(19,27,46,0.05) 50%);
+      background-size: 100% 4px;
+    }
+    body { min-height: 100dvh; overflow-x: hidden; }
+    .font-libre { font-family: "Libre Baskerville", Georgia, serif; }
+    .font-domine { font-family: "Domine", Georgia, serif; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .anim-fade { animation: slideUp 0.45s ease-out forwards; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .spinning { animation: spin 1s linear infinite; }
+    @keyframes slide {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(400%);  }
+    }
+  </style>
+</head>
+
+<body class="bg-background font-body text-on-surface min-h-screen pb-24 md:pb-0 font-medium tracking-tight relative z-0">
+
+  <!-- Matrix BG -->
+  <canvas id="matrix-bg" class="fixed inset-0 w-full h-full pointer-events-none z-[-1] opacity-60 blur-[2px]"></canvas>
+
+  <!-- ══ Header ══ -->
+  <header class="bg-[#FBF3D1] border-b border-primary-container/10 w-full top-0 sticky z-50 shadow-sm">
+    <div class="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto w-full">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-3xl">terminal</span>
+        <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-primary font-libre">API <span class="italic font-normal">Sentinel</span></h1>
+      </div>
+      <nav class="hidden md:flex gap-8">
+        <a class="text-primary font-headline text-sm font-bold uppercase tracking-widest hover:bg-surface-container px-3 py-2 rounded-md transition-colors" href="#">MONITOR</a>
+      </nav>
+      <div class="hidden sm:flex flex-col items-end">
+        <span class="text-xs font-bold uppercase tracking-tight opacity-50">System Status</span>
+        <span class="text-sm font-bold uppercase text-green-600 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-green-500 glow-green"></span>Operational
+        </span>
+      </div>
+    </div>
+    <!-- animated accent bar -->
+    <div class="bg-[#131b2e] h-1 w-full relative overflow-hidden">
+      <div class="absolute inset-0 bg-green-400 w-1/4 animate-[slide_2s_ease-in-out_infinite]"></div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-12 space-y-8 sm:space-y-12">
+
+    <!-- ══ Command Entry ══ -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-0 border border-primary-container/10 rounded-sm overflow-hidden shadow-sm">
+      <div class="lg:col-span-3 bg-primary-container p-6 flex flex-col justify-between">
+        <div>
+          <h2 class="text-on-primary-container font-libre font-bold text-base italic mb-3">Command Entry</h2>
+          <p class="text-on-primary-container/80 text-sm leading-relaxed font-domine">Initialize a new protocol monitoring service by entering your destination endpoint below.</p>
+        </div>
+        <span class="material-symbols-outlined text-on-primary-container/20 text-6xl rotate-12 self-end mt-4 lg:mt-0">add_task</span>
+      </div>
+      <div class="lg:col-span-9 bg-surface-container-low p-8 sm:p-10">
+        <form id="apiForm" class="flex flex-col md:flex-row items-end gap-6 w-full">
+          <div class="flex-1 w-full">
+            <label class="block text-xs font-bold uppercase tracking-widest text-primary mb-3">Endpoint Destination URL</label>
+            <div class="relative">
+              <input id="urlInput" required type="url"
+                class="w-full bg-surface-container-highest border border-primary-container/10 focus:ring-2 focus:ring-primary text-primary font-mono text-base sm:text-lg p-5 placeholder:opacity-40 transition-all font-bold rounded-md"
+                placeholder="https://api.v1.production.com/health"/>
+              <span class="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-bold opacity-30">AUTO_TLS</span>
+            </div>
+          </div>
+          <button id="checkBtn" type="submit"
+            class="w-full md:w-auto bg-primary text-on-primary px-10 py-5 font-headline font-bold text-sm uppercase tracking-[0.2em] hover:bg-slate-800 transition-all flex items-center justify-center gap-3 active:scale-[0.98] rounded-md">
+            <span id="btnText">Start Scan</span>
+            <span id="btnIcon" class="material-symbols-outlined text-base">rocket_launch</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ══ Live Result Panel (hidden until scan) ══ -->
+    <div id="liveResultPanel" class="hidden border border-primary-container/10 rounded-sm overflow-hidden shadow-md anim-fade">
+      <div class="p-8 sm:p-10 bg-surface-container-low">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+          <h2 class="font-libre font-bold text-xl md:text-2xl italic tracking-tight">Active Scan Result</h2>
+          <span id="resTimestamp" class="text-xs font-bold font-mono text-primary/50 uppercase tracking-widest"></span>
+        </div>
+
+        <div class="flex flex-col md:flex-row items-center gap-10">
+          <div class="flex items-center gap-6 flex-1 w-full">
+            <div id="resDot" class="w-16 h-16 rounded-full flex items-center justify-center shrink-0">
+              <span id="resIcon" class="material-symbols-outlined text-white text-3xl">settings_ethernet</span>
+            </div>
+            <div>
+              <p class="text-xs font-bold opacity-50 uppercase tracking-widest mb-2">Status Code</p>
+              <h3 id="resCode" class="font-mono text-4xl sm:text-5xl font-black">—</h3>
+            </div>
+          </div>
+          <div class="flex-1 w-full border-t md:border-t-0 md:border-l border-primary-container/10 pt-6 md:pt-0 pl-0 md:pl-10">
+            <p class="text-xs font-bold opacity-50 uppercase tracking-widest mb-2">Latency</p>
+            <h3 id="resLat" class="font-headline text-4xl sm:text-5xl font-black text-primary">—</h3>
+            <div class="w-full h-2 bg-surface-variant mt-4 rounded-full overflow-hidden">
+              <div id="resLatBar" class="h-full bg-primary transition-all duration-500 ease-out" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="resErrBody" class="hidden mt-6 p-6 bg-error-container/20 border-l-4 border-error text-error font-mono text-sm font-bold leading-relaxed break-words"></div>
+
+        <!-- Agent validation section -->
+        <div id="agentUI" class="hidden mt-6 pt-6 border-t border-primary-container/10">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <p class="text-sm font-bold font-headline uppercase text-error tracking-wider flex items-center gap-2">
+              <span class="material-symbols-outlined text-base">warning</span> Service Down. Run Web Agent?
+            </p>
+            <button id="agentBtn"
+              class="w-full sm:w-auto bg-[#ba1a1a] text-white px-6 py-3 rounded-sm text-xs font-bold font-headline uppercase tracking-widest hover:bg-[#93000a] transition-all flex items-center justify-center gap-2 active:scale-95">
+              <span id="agentIcon" class="material-symbols-outlined text-sm">robot_2</span>
+              <span id="agentText">Validate Official Status</span>
+            </button>
+          </div>
+          <div id="agentOut" class="hidden mt-4 p-4 bg-primary-container text-on-primary-container font-mono text-sm leading-relaxed max-h-48 overflow-y-auto scanline rounded-sm border border-black"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ Log + Sidebar grid ══ -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-12">
+
+      <!-- Transmission Log -->
+      <div class="lg:col-span-8 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-primary-container/10 pb-6 gap-4">
+          <div class="flex items-center gap-4">
+            <span class="bg-primary-container text-on-primary-container px-4 py-2 text-xs font-bold tracking-widest rounded-md font-headline uppercase">TRANSMISSIONS</span>
+            <h2 class="font-libre font-bold text-xl sm:text-2xl italic">Transmission Log</h2>
+          </div>
+          <span id="historyCountLabel" class="text-xs font-bold opacity-50 font-mono tracking-wide uppercase shrink-0">Records: 0 / 10</span>
+        </div>
+        <div class="space-y-4" id="historyContainer">
+          <div id="emptyState" class="p-10 text-center bg-surface-container-low border border-primary-container/10 border-dashed rounded-md">
+            <span class="material-symbols-outlined text-5xl opacity-20 block mb-3">satellite_alt</span>
+            <p class="text-sm font-bold font-headline uppercase tracking-widest opacity-50">No Transmissions Recorded</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Raw Output Log -->
+      <aside class="lg:col-span-4 flex flex-col space-y-6">
+        <div class="flex items-center gap-4 border-b border-primary-container/10 pb-4">
+          <span class="bg-primary text-on-primary px-4 py-2 text-xs font-bold tracking-widest uppercase rounded-md font-headline">System_Log</span>
+          <h2 class="font-libre font-bold text-xl italic">Raw Output</h2>
+        </div>
+        <div class="bg-primary-container p-6 sm:p-8 flex-1 scanline relative overflow-hidden min-h-[300px] shadow-inner rounded-md border-t border-black/20">
+          <div class="relative z-10 space-y-6" id="logContainer">
+            <div id="logEmpty" class="text-on-primary-container/40 font-mono text-sm font-bold uppercase tracking-widest">AWAITING INITIALIZATION...</div>
+          </div>
+          <div class="absolute bottom-4 right-4 opacity-[0.03] pointer-events-none">
+            <span class="material-symbols-outlined text-9xl text-on-primary-container">monitoring</span>
+          </div>
+        </div>
+        <div class="bg-surface-container-high border border-primary-container/10 shadow-sm p-4 flex items-center justify-between rounded-sm">
+          <span class="text-xs font-bold uppercase tracking-widest text-primary">Network Load</span>
+          <div class="flex gap-1" id="pulseIndicator">
+            <div class="h-4 w-1.5 bg-primary"></div>
+            <div class="h-4 w-1.5 bg-primary"></div>
+            <div class="h-4 w-1.5 bg-primary opacity-30"></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Mobile Nav -->
+  <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex bg-[#131b2e] border-t border-white/10">
+    <button class="flex flex-col items-center justify-center text-green-400 p-3 w-full">
+      <span class="material-symbols-outlined mb-1">analytics</span>
+      <span class="font-headline text-[10px] font-bold uppercase tracking-widest">MONITOR CORE</span>
+    </button>
+  </nav>
+
+  <!-- Desktop Footer -->
+  <footer class="hidden md:flex fixed bottom-0 w-full bg-primary-container border-t border-white/5 text-on-primary-container/30 px-6 py-2 items-center justify-between text-[9px] font-mono uppercase tracking-[0.3em] z-50">
+    <span>Build: SENTINEL-V4.2.0-STABLE</span>
+    <div class="flex gap-8">
+      <span>Uptime: 99.999%</span>
+      <span>API SENTINEL © 2025</span>
+    </div>
+  </footer>
+
+  <script>
+    // ── State (localStorage) ──────────────────────────────
+    const MAX_HISTORY = 10;
+    function getHistory() {
+      try { return JSON.parse(localStorage.getItem('sentinel_checks') || '[]'); }
+      catch { return []; }
+    }
+    function saveHistory(checks) {
+      localStorage.setItem('sentinel_checks', JSON.stringify(checks));
+    }
+    function addToHistory(entry) {
+      const checks = getHistory();
+      checks.unshift(entry);
+      if (checks.length > MAX_HISTORY) checks.pop();
+      saveHistory(checks);
+      return checks;
+    }
+
+    // ── DOM refs ─────────────────────────────────────────
+    const form        = document.getElementById('apiForm');
+    const input       = document.getElementById('urlInput');
+    const checkBtn    = document.getElementById('checkBtn');
+    const btnText     = document.getElementById('btnText');
+    const btnIcon     = document.getElementById('btnIcon');
+    const livePanel   = document.getElementById('liveResultPanel');
+    const resDot      = document.getElementById('resDot');
+    const resIcon     = document.getElementById('resIcon');
+    const resCode     = document.getElementById('resCode');
+    const resLat      = document.getElementById('resLat');
+    const resLatBar   = document.getElementById('resLatBar');
+    const resTimestamp= document.getElementById('resTimestamp');
+    const resErrBody  = document.getElementById('resErrBody');
+    const agentUI     = document.getElementById('agentUI');
+    const agentBtn    = document.getElementById('agentBtn');
+    const agentOut    = document.getElementById('agentOut');
+    const agentIcon   = document.getElementById('agentIcon');
+    const agentText   = document.getElementById('agentText');
+    const historyContainer = document.getElementById('historyContainer');
+    const historyCountLabel = document.getElementById('historyCountLabel');
+    const logContainer = document.getElementById('logContainer');
+    let currentUrl = '';
+
+    // ── Init: render saved history ────────────────────────
+    renderHistory(getHistory());
+
+    // ── Form submit ───────────────────────────────────────
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      currentUrl = input.value.trim();
+      if (!currentUrl) return;
+
+      checkBtn.disabled = true;
+      btnText.textContent = 'SCANNING';
+      btnIcon.textContent = 'sync';
+      btnIcon.classList.add('spinning');
+
+      try {
+        const res = await fetch('/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: currentUrl })
+        });
+        const data = await res.json();
+        const checks = addToHistory(data);
+        renderLivePanel(data);
+        renderHistory(checks);
+      } catch (err) {
+        alert('Scan Error: ' + err.message);
+      } finally {
+        checkBtn.disabled = false;
+        btnText.textContent = 'Start Scan';
+        btnIcon.textContent = 'rocket_launch';
+        btnIcon.classList.remove('spinning');
+        input.value = '';
+      }
+    });
+
+    // ── Render live panel ─────────────────────────────────
+    function renderLivePanel(data) {
+      livePanel.classList.remove('hidden');
+      livePanel.classList.remove('anim-fade');
+      void livePanel.offsetWidth;
+      livePanel.classList.add('anim-fade');
+
+      const isUp = data.status === 'UP';
+      resTimestamp.textContent = new Date(data.timestamp).toLocaleTimeString('en-US');
+      resCode.textContent = data.httpCode || 'ERR';
+      resLat.innerHTML = `${data.latencyMs}<span class="text-lg font-medium ml-2">ms</span>`;
+      const p = Math.min(100, Math.max(5, (data.latencyMs / 5000) * 100));
+      resLatBar.style.width = `${p}%`;
+
+      resDot.className = `w-16 h-16 rounded-full flex items-center justify-center shrink-0 ${isUp ? 'bg-green-500 glow-green' : 'bg-[#ef4444] glow-error'}`;
+      resIcon.textContent = isUp ? 'check_circle' : 'error';
+      resCode.className = `font-mono text-4xl sm:text-5xl font-black ${isUp ? 'text-green-600' : 'text-[#ba1a1a]'}`;
+      resLat.className = `font-headline text-4xl sm:text-5xl font-black ${isUp ? 'text-primary' : 'text-[#ba1a1a]'}`;
+      resLatBar.className = `h-full transition-all duration-500 ease-out ${isUp ? 'bg-green-500' : 'bg-[#ba1a1a]'}`;
+
+      if (data.error) {
+        resErrBody.textContent = `CRITICAL TRACE >> ${data.error}`;
+        resErrBody.classList.remove('hidden');
+      } else { resErrBody.classList.add('hidden'); }
+
+      agentUI.classList.toggle('hidden', isUp);
+      if (!isUp) agentOut.classList.add('hidden');
+    }
+
+    // ── Render history list ───────────────────────────────
+    function renderHistory(checks) {
+      historyCountLabel.textContent = `Records: ${checks.length} / ${MAX_HISTORY}`;
+
+      if (checks.length === 0) {
+        historyContainer.innerHTML = `
+          <div class="p-10 text-center bg-surface-container-low border border-primary-container/10 border-dashed rounded-md">
+            <span class="material-symbols-outlined text-5xl opacity-20 block mb-3">satellite_alt</span>
+            <p class="text-sm font-bold font-headline uppercase tracking-widest opacity-50">No Transmissions Recorded</p>
+          </div>`;
+        logContainer.innerHTML = `<div class="text-on-primary-container/40 font-mono text-sm font-bold uppercase tracking-widest">AWAITING INITIALIZATION...</div>`;
+        return;
+      }
+
+      // History cards
+      historyContainer.innerHTML = checks.map(c => {
+        const isUp = c.status === 'UP';
+        const t = new Date(c.timestamp).toLocaleTimeString('en-US', {hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        return `
+          <div class="${isUp ? 'bg-surface-container-low hover:bg-surface-container-high' : 'bg-red-50 hover:bg-red-100'} transition-all flex items-stretch border border-primary-container/5 rounded-md shadow-[0_1px_2px_rgba(0,0,0,0.03)] anim-fade">
+            <div class="w-2.5 ${isUp ? 'bg-green-500' : 'bg-[#ba1a1a]'} rounded-l-md flex-shrink-0"></div>
+            <div class="flex-1 p-6 sm:p-8 grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-8 items-center">
+              <div class="md:col-span-2 space-y-2">
+                <div class="flex items-center gap-3">
+                  <span class="text-xs sm:text-sm font-black ${isUp ? 'text-green-600' : 'text-[#ba1a1a]'} uppercase tracking-widest">${c.status}</span>
+                  <span class="text-xs text-on-surface/50 font-mono">ID:${(c.id||'??????').substring(0,6)}</span>
+                </div>
+                <h3 class="font-mono text-sm sm:text-base font-bold truncate text-primary" title="${c.url}">${c.url}</h3>
+              </div>
+              <div class="flex items-center gap-5">
+                <div class="w-3 h-3 rounded-full ${isUp ? 'bg-green-500 glow-green' : 'bg-[#ef4444] glow-error'}"></div>
+                <span class="text-2xl sm:text-3xl font-black font-headline ${isUp ? 'text-primary' : 'text-[#ba1a1a]'}">${c.latencyMs}<span class="text-sm font-medium ml-1">ms</span></span>
+                <span class="bg-primary/5 rounded-md text-xs font-bold font-mono px-3 py-1">${c.httpCode||'ERR'}</span>
+              </div>
+              <div class="text-left md:text-right space-y-2">
+                <span class="block text-xs font-bold opacity-50 uppercase tracking-widest">Time</span>
+                <span class="block font-mono text-xs sm:text-sm font-bold text-primary">${t}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+
+      // Raw log sidebar
+      logContainer.innerHTML = checks.slice(0,7).map(c => {
+        const t = new Date(c.timestamp).toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        const col = c.status==='UP' ? 'text-green-400' : 'text-red-400';
+        return `
+          <div class="flex gap-4 sm:gap-6 anim-fade items-start">
+            <span class="text-on-primary-container/40 font-mono text-xs pt-1 whitespace-nowrap">${t}</span>
+            <div class="flex-1">
+              <span class="block ${col} font-bold text-sm uppercase tracking-wide">[${c.status}] ${c.httpCode||'ERR'}</span>
+              <p class="text-on-primary-container/80 text-xs sm:text-sm font-mono mt-2 break-words leading-relaxed">${c.url} (${c.latencyMs}ms)${c.error ? ` — ${c.error}` : ''}</p>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ── Agent validate ────────────────────────────────────
+    agentBtn.addEventListener('click', async () => {
+      agentBtn.disabled = true;
+      agentIcon.textContent = 'sync';
+      agentIcon.classList.add('spinning');
+      agentText.textContent = 'INITIALIZING AGENT...';
+      try {
+        const res = await fetch('/validate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: currentUrl })
+        });
+        const data = await res.json();
+        agentOut.classList.remove('hidden');
+        const statusCol = data.officialStatus === 'operational' ? 'text-green-400' : 'text-red-400';
+        agentOut.innerHTML = `
+          > AGENT RUN COMPLETE<br>
+          > TARGET: ${data.service}<br>
+          > OFFICIAL STATUS: <strong class="${statusCol}">${(data.officialStatus||'unknown').toUpperCase()}</strong><br>
+          ${data.statusPageUrl ? `> SOURCE: <a href="${data.statusPageUrl}" target="_blank" class="underline text-blue-300">${data.statusPageUrl}</a><br>` : ''}
+          ${data.details ? `> DETAILS: ${data.details}<br>` : ''}
+          ${data.error ? `> NOTE: <span class="text-red-400">${data.error}</span>` : ''}`;
+      } catch (err) {
+        agentOut.classList.remove('hidden');
+        agentOut.innerHTML = `<span class="text-red-400">> FATAL AGENT ERROR: ${err.message}</span>`;
+      } finally {
+        agentBtn.disabled = false;
+        agentIcon.textContent = 'robot_2';
+        agentIcon.classList.remove('spinning');
+        agentText.textContent = 'Validate Official Status';
+      }
+    });
+
+    // ── Matrix Rain ───────────────────────────────────────
+    const canvas = document.getElementById('matrix-bg');
+    const ctx = canvas.getContext('2d');
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    const chars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    const fontSize = 16;
+    let drops = Array.from({ length: Math.floor(canvas.width / fontSize) }, () => 1);
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(251,243,209,0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = fontSize + 'px monospace';
+      ctx.textAlign = 'center';
+      drops.forEach((y, i) => {
+        ctx.fillStyle = Math.random() > 0.85 ? '#22a84e' : '#1a7a3a';
+        ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * fontSize, y * fontSize);
+        if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      });
+    }
+    setInterval(drawMatrix, 40);
+  </script>
+</body>
+</html>
