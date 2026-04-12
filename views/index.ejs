@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="API Sentinel — Mission Control Dashboard for real-time API health monitoring, latency measurement, and status validation." />
+  <title>API Sentinel — Mission Control</title>
+
+  <!-- Tailwind v4 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <!-- Fonts: Inter for UI, JetBrains Mono for data, Outfit for Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;600;700;800;900&family=Roboto:wght@100;400;700&display=swap" rel="stylesheet" />
+
+  <style type="text/tailwindcss">
+    @theme {
+      --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+      --font-display: 'Outfit', sans-serif;
+      --color-sentinel-cyan: #22d3ee;
+      --color-sentinel-green: #10b981;
+      --color-sentinel-red: #ef4444;
+      --color-sentinel-amber: #f59e0b;
+      --color-panel: rgba(255, 255, 255, 0.85); /* Light panel */
+      --color-panel-border: rgba(200, 200, 200, 0.6);
+      --card-bg: #fdfbf7; /* Cream background */
+    }
+  </style>
+
+  <style>
+
+    .thin-text {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 100;
+      letter-spacing: 0.1em;
+    }
+
+    .bold-text {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 700;
+    }
+
+    /* ── Scanline overlay ── */
+    .scanlines::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.06) 2px,
+        rgba(0, 0, 0, 0.06) 4px
+      );
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* ── Glow pulses ── */
+    @keyframes pulseGreen {
+      0%, 100% { box-shadow: 0 0 8px 2px rgba(74, 222, 128, 0.5), 0 0 20px 4px rgba(74, 222, 128, 0.2); }
+      50% { box-shadow: 0 0 16px 6px rgba(74, 222, 128, 0.7), 0 0 40px 10px rgba(74, 222, 128, 0.3); }
+    }
+    @keyframes pulseRed {
+      0%, 100% { box-shadow: 0 0 8px 2px rgba(248, 113, 113, 0.5), 0 0 20px 4px rgba(248, 113, 113, 0.2); }
+      50% { box-shadow: 0 0 16px 6px rgba(248, 113, 113, 0.7), 0 0 40px 10px rgba(248, 113, 113, 0.3); }
+    }
+    .glow-green { animation: pulseGreen 2s ease-in-out infinite; }
+    .glow-red   { animation: pulseRed 2s ease-in-out infinite; }
+
+    /* ── Radar spin ── */
+    @keyframes radarSpin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    .radar-spin { animation: radarSpin 1.5s linear infinite; }
+
+    /* ── Typing cursor ── */
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .cursor-blink::after {
+      content: '█';
+      animation: blink 1s step-end infinite;
+      color: #22d3ee;
+      margin-left: 2px;
+    }
+
+    /* ── Fade in for results ── */
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadein { animation: fadeSlideIn 0.4s ease-out forwards; }
+
+    /* ── Latency bar fill ── */
+    @keyframes barGrow {
+      from { width: 0; }
+    }
+    .bar-grow { animation: barGrow 0.6s ease-out forwards; }
+
+    /* ── 3D Grid Illusion ── */
+    @keyframes gridMove {
+      0% { transform: perspective(800px) rotateX(60deg) translateY(0); }
+      100% { transform: perspective(800px) rotateX(60deg) translateY(40px); }
+    }
+    .grid-bg-3d {
+      position: absolute;
+      inset: -50%;
+      width: 200%;
+      height: 200%;
+      background-image:
+        linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      transform-origin: center center;
+      animation: gridMove 6s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Card Float Animation ── */
+    @keyframes floatCard {
+      0%, 100% { transform: translate3d(0, 0, 0.01px); }
+      50% { transform: translate3d(0, -6px, 0.01px); }
+    }
+    .animate-float-1 { animation: floatCard 6s ease-in-out infinite; }
+    .animate-float-2 { animation: floatCard 7s ease-in-out infinite 1s; }
+    .animate-float-3 { animation: floatCard 6.5s ease-in-out infinite 0.5s; }
+
+    /* ── Custom scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* ── Input focus glow ── */
+    .input-glow:focus {
+      box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.3), 0 0 20px rgba(34, 211, 238, 0.1);
+    }
+
+    /* ── Button hover ── */
+    .btn-sentinel {
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-sentinel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.5s;
+    }
+    .btn-sentinel:hover::before {
+      transform: translateX(100%);
+    }
+
+    /* ── Status badge shimmer ── */
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+
+    /* Modal backdrop */
+    .modal-backdrop {
+      backdrop-filter: blur(8px);
+      background: rgba(255,255,255,0.6);
+    }
+
+    /* ── BorderGlow CSS ── */
+    .border-glow-card {
+      --edge-proximity: 0;
+      --cursor-angle: 45deg;
+      --edge-sensitivity: 30;
+      --color-sensitivity: calc(var(--edge-sensitivity) + 20);
+      --border-radius: 28px;
+      --glow-padding: 40px;
+      --cone-spread: 25;
+      
+      --gradient-base: linear-gradient(#e5e7eb 0 100%);
+      --glow-color: hsl(200deg 80% 80% / 100%);
+      --glow-color-60: hsl(200deg 80% 80% / 60%);
+      --glow-color-50: hsl(200deg 80% 80% / 50%);
+      --glow-color-40: hsl(200deg 80% 80% / 40%);
+      --glow-color-30: hsl(200deg 80% 80% / 30%);
+      --glow-color-20: hsl(200deg 80% 80% / 20%);
+      --glow-color-10: hsl(200deg 80% 80% / 10%);
+
+      position: relative;
+      border-radius: var(--border-radius);
+      isolation: isolate;
+      transform: translate3d(0, 0, 0.01px);
+      display: grid;
+      border: 1px solid rgba(0, 0, 0, 0.03);
+      background: var(--card-bg, #fdfbf7);
+      overflow: visible;
+      box-shadow:
+        rgba(0, 0, 0, 0.05) 0px 1px 2px,
+        rgba(0, 0, 0, 0.05) 0px 2px 4px,
+        rgba(0, 0, 0, 0.05) 0px 4px 8px;
+    }
+
+    .border-glow-card::before,
+    .border-glow-card::after,
+    .border-glow-card > .edge-light {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      transition: opacity 0.25s ease-out;
+      z-index: -1;
+    }
+
+    .border-glow-card:not(:hover):not(.sweep-active)::before,
+    .border-glow-card:not(:hover):not(.sweep-active)::after,
+    .border-glow-card:not(:hover):not(.sweep-active) > .edge-light {
+      opacity: 0;
+      transition: opacity 0.75s ease-in-out;
+    }
+
+    /* colored mesh-gradient border */
+    .border-glow-card::before {
+      border: 1px solid transparent;
+      background:
+        linear-gradient(var(--card-bg, #fdfbf7) 0 100%) padding-box,
+        linear-gradient(rgba(0,0,0,0) 0% 100%) border-box,
+        var(--gradient-one, radial-gradient(at 80% 55%, hsla(200, 100%, 76%, 1) 0px, transparent 50%)) border-box,
+        var(--gradient-two, radial-gradient(at 69% 34%, hsla(160, 100%, 74%, 1) 0px, transparent 50%)) border-box,
+        var(--gradient-three, radial-gradient(at 8% 6%, hsla(136, 100%, 78%, 1) 0px, transparent 50%)) border-box,
+        var(--gradient-four, radial-gradient(at 41% 38%, hsla(192, 100%, 64%, 1) 0px, transparent 50%)) border-box,
+        var(--gradient-five, radial-gradient(at 86% 85%, hsla(186, 100%, 74%, 1) 0px, transparent 50%)) border-box,
+        var(--gradient-six, radial-gradient(at 82% 18%, hsla(52, 100%, 65%, 1) 0px, transparent 50%)) border-box,
+        var(--gradient-seven, radial-gradient(at 51% 4%, hsla(210, 100%, 72%, 1) 0px, transparent 50%)) border-box,
+        var(--gradient-base, linear-gradient(#e5e7eb 0 100%)) border-box;
+
+      opacity: calc((var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+
+      mask-image:
+        conic-gradient(
+          from var(--cursor-angle) at center,
+          black calc(var(--cone-spread) * 1%),
+          transparent calc((var(--cone-spread) + 15) * 1%),
+          transparent calc((100 - var(--cone-spread) - 15) * 1%),
+          black calc((100 - var(--cone-spread)) * 1%)
+        );
+    }
+
+    /* colored mesh-gradient background fill near edges */
+    .border-glow-card::after {
+      border: 1px solid transparent;
+      background:
+        var(--gradient-one, radial-gradient(at 80% 55%, hsla(200, 100%, 76%, 1) 0px, transparent 50%)) padding-box,
+        var(--gradient-two, radial-gradient(at 69% 34%, hsla(160, 100%, 74%, 1) 0px, transparent 50%)) padding-box,
+        var(--gradient-three, radial-gradient(at 8% 6%, hsla(136, 100%, 78%, 1) 0px, transparent 50%)) padding-box,
+        var(--gradient-four, radial-gradient(at 41% 38%, hsla(192, 100%, 64%, 1) 0px, transparent 50%)) padding-box,
+        var(--gradient-five, radial-gradient(at 86% 85%, hsla(186, 100%, 74%, 1) 0px, transparent 50%)) padding-box,
+        var(--gradient-six, radial-gradient(at 82% 18%, hsla(52, 100%, 65%, 1) 0px, transparent 50%)) padding-box,
+        var(--gradient-seven, radial-gradient(at 51% 4%, hsla(210, 100%, 72%, 1) 0px, transparent 50%)) padding-box,
+        var(--gradient-base, linear-gradient(#e5e7eb 0 100%)) padding-box;
+
+      mask-image:
+        linear-gradient(to bottom, black, black),
+        radial-gradient(ellipse at 50% 50%, black 40%, transparent 65%),
+        radial-gradient(ellipse at 66% 66%, black 5%, transparent 40%),
+        radial-gradient(ellipse at 33% 33%, black 5%, transparent 40%),
+        radial-gradient(ellipse at 66% 33%, black 5%, transparent 40%),
+        radial-gradient(ellipse at 33% 66%, black 5%, transparent 40%),
+        conic-gradient(from var(--cursor-angle) at center, transparent 5%, black 15%, black 85%, transparent 95%);
+
+      mask-composite: subtract, add, add, add, add, add;
+      opacity: calc(var(--fill-opacity, 0.5) * (var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+      mix-blend-mode: multiply; /* changed from soft-light for light theme */
+    }
+
+    /* outer glow layer */
+    .border-glow-card > .edge-light {
+      inset: calc(var(--glow-padding) * -1);
+      pointer-events: none;
+      z-index: 1;
+
+      mask-image:
+        conic-gradient(
+          from var(--cursor-angle) at center, black 2.5%, transparent 10%, transparent 90%, black 97.5%
+        );
+
+      opacity: calc((var(--edge-proximity) - var(--edge-sensitivity)) / (100 - var(--edge-sensitivity)));
+      mix-blend-mode: normal; /* changed from plus-lighter for light theme */
+    }
+
+    .border-glow-card > .edge-light::before {
+      content: "";
+      position: absolute;
+      inset: var(--glow-padding);
+      border-radius: inherit;
+      box-shadow:
+        inset 0 0 0 1px var(--glow-color, hsl(200deg 80% 80% / 100%)),
+        inset 0 0 1px 0 var(--glow-color-60, hsl(200deg 80% 80% / 60%)),
+        inset 0 0 3px 0 var(--glow-color-50, hsl(200deg 80% 80% / 50%)),
+        inset 0 0 6px 0 var(--glow-color-40, hsl(200deg 80% 80% / 40%)),
+        inset 0 0 15px 0 var(--glow-color-30, hsl(200deg 80% 80% / 30%)),
+        inset 0 0 25px 2px var(--glow-color-20, hsl(200deg 80% 80% / 20%)),
+        inset 0 0 50px 2px var(--glow-color-10, hsl(200deg 80% 80% / 10%)),
+        0 0 1px 0 var(--glow-color-60, hsl(200deg 80% 80% / 60%)),
+        0 0 3px 0 var(--glow-color-50, hsl(200deg 80% 80% / 50%)),
+        0 0 6px 0 var(--glow-color-40, hsl(200deg 80% 80% / 40%)),
+        0 0 15px 0 var(--glow-color-30, hsl(200deg 80% 80% / 30%)),
+        0 0 25px 2px var(--glow-color-20, hsl(200deg 80% 80% / 20%)),
+        0 0 50px 2px var(--glow-color-10, hsl(200deg 80% 80% / 10%));
+    }
+
+    .border-glow-inner {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: auto;
+      z-index: 1;
+      background: var(--card-bg, #fdfbf7);
+      border-radius: var(--border-radius);
+      padding: 2rem; /* Increased padding for better breathing room */
+    }
+  </style>
+</head>
+
+<body class="bg-[#fdfbf7] text-slate-900 font-sans min-h-screen antialiased selection:bg-slate-200 selection:text-slate-900 overflow-x-hidden">
+
+  <!-- ══════════ Background 3D Grid ══════════ -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="grid-bg-3d"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-[#fdfbf7] via-transparent to-[#fdfbf7] z-1 opacity-90"></div>
+  </div>
+
+  <!-- ══════════ Main Container ══════════ -->
+  <div class="relative z-10 max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+
+    <!-- ─── Header ─── -->
+    <header class="text-center mb-10 animate-float-1">
+      <div class="inline-flex items-center gap-3 mb-2">
+        <!-- Satellite icon -->
+        <svg class="w-10 h-10 text-slate-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9.348 14.652a3.75 3.75 0 010-5.304m5.304 0a3.75 3.75 0 010 5.304m-7.425 2.121a6.75 6.75 0 010-9.546m9.546 0a6.75 6.75 0 010 9.546M5.106 18.894c-3.808-3.807-3.808-9.98 0-13.788m13.788 0c3.808 3.807 3.808 9.98 0 13.788M12 12h.008v.008H12V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+        </svg>
+        <h1 class="text-4xl sm:text-5xl tracking-tight text-slate-900">
+          <span class="thin-text">API</span><span class="bold-text">SENTINEL</span>
+        </h1>
+      </div>
+      <p class="text-slate-900 text-sm tracking-[0.3em] font-light uppercase mt-2">Mission Control • Real-Time Monitor</p>
+      <div class="mt-5 h-px w-32 mx-auto bg-slate-200"></div>
+    </header>
+
+    <!-- ─── Command Terminal Input ─── -->
+    <section id="check-form" class="mb-8 animate-float-2">
+      <div class="border-glow-card">
+        <span class="edge-light"></span>
+        <div class="border-glow-inner">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-3 h-3 rounded-full bg-slate-900"></div>
+            <div class="w-3 h-3 rounded-full bg-slate-300"></div>
+            <div class="w-3 h-3 rounded-full bg-slate-300"></div>
+            <span class="ml-2 text-slate-900 text-xs tracking-[0.2em] font-display font-light uppercase">SENTINEL://COMMAND_TERMINAL</span>
+          </div>
+
+          <form id="apiForm" class="flex flex-col sm:flex-row gap-3">
+            <div class="flex-1 relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-600 text-sm select-none">▶</span>
+              <input
+                type="url"
+                id="urlInput"
+                name="url"
+                placeholder="https://api.example.com/health"
+                required
+                autocomplete="url"
+                class="input-glow w-full font-mono font-medium bg-white border border-slate-200 rounded-xl pl-12 pr-4 py-4 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-800 transition-all duration-300 shadow-sm"
+              />
+            </div>
+            <button
+              type="submit"
+              id="checkBtn"
+              class="bg-slate-900 hover:bg-black text-white font-bold px-8 py-4 rounded-xl text-sm tracking-[0.1em] uppercase transition-all duration-300 ease-out shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 min-w-[200px]"
+            >
+              <svg id="btnIconIdle" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728M12 12h.008" />
+              </svg>
+              <svg id="btnIconLoading" class="w-4 h-4 radar-spin hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span id="btnText">Initiate Check</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Live Result Panel ─── -->
+    <section id="resultPanel" class="mb-8 hidden animate-float-3">
+      <div class="border-glow-card animate-fadein">
+        <span class="edge-light"></span>
+        <div class="border-glow-inner">
+          <div class="flex items-center justify-between mb-8">
+            <h2 class="text-sm tracking-[0.2em] font-light uppercase text-slate-900 font-display">Latest Transmission</h2>
+            <span id="resultTimestamp" class="text-xs text-slate-900 font-mono font-medium"></span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <!-- Status -->
+            <div class="text-center">
+              <div id="statusDot" class="w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center"></div>
+              <p id="statusText" class="text-2xl font-bold tracking-wider"></p>
+              <p class="text-xs text-slate-500 mt-1 uppercase tracking-wider">Status</p>
+            </div>
+            <!-- Latency -->
+            <div class="text-center">
+              <p id="latencyValue" class="text-4xl font-bold font-mono text-cyan-600"></p>
+              <p class="text-xs text-slate-500 mt-2 uppercase tracking-wide">Latency (ms)</p>
+              <div class="mt-3 h-2 bg-slate-200 rounded-full overflow-hidden max-w-[150px] mx-auto shadow-inner">
+                <div id="latencyBar" class="h-full rounded-full bar-grow"></div>
+              </div>
+            </div>
+            <!-- HTTP Code -->
+            <div class="text-center">
+              <p id="httpCode" class="text-4xl font-bold font-mono"></p>
+              <p class="text-xs text-slate-500 mt-2 uppercase tracking-wide">HTTP Code</p>
+              <p id="errorMsg" class="text-xs text-red-500 mt-2 hidden"></p>
+            </div>
+          </div>
+
+          <!-- Validate Button (appears on DOWN) -->
+          <div id="validateSection" class="hidden mt-6 pt-5 border-t border-slate-200">
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+              <p class="text-sm text-slate-600">
+                <span class="text-amber-500">⚠</span> Service appears down. Verify official status?
+              </p>
+              <button
+                id="validateBtn"
+                class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-6 py-2.5 rounded-lg text-xs tracking-wider uppercase transition-all duration-300 ease-out shadow hover:shadow-md hover:-translate-y-0.5 active:scale-95 flex items-center gap-2"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                Launch Validation Agent
+              </button>
+            </div>
+            <div id="validateResult" class="hidden mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200 animate-fadein">
+              <p class="text-xs text-slate-500 uppercase tracking-wider mb-2">Agent Report</p>
+              <p id="validateStatus" class="text-sm"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── History Table ─── -->
+    <section id="historySection" class="animate-float-1">
+      <div class="border-glow-card">
+        <span class="edge-light"></span>
+        <div class="border-glow-inner !p-0">
+          <div class="px-8 py-5 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="text-sm tracking-[0.2em] font-light uppercase text-slate-900 font-display flex items-center gap-2">
+              <svg class="w-4 h-4 text-slate-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Transmission Log
+            </h2>
+            <span class="text-xs text-slate-900 font-mono font-medium" id="logCount">0 / 10 records</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-slate-900 text-xs uppercase tracking-[0.1em] font-light bg-slate-50 border-b border-slate-100">
+                  <th class="px-8 py-4 text-left">Status</th>
+                  <th class="px-8 py-4 text-left">Endpoint</th>
+                  <th class="px-8 py-4 text-center">Code</th>
+                  <th class="px-8 py-4 text-center">Latency</th>
+                  <th class="px-8 py-4 text-right">Timestamp</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody" class="divide-y divide-slate-100/50">
+                <% if (checks.length === 0) { %>
+                  <tr>
+                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                      <svg class="w-8 h-8 mx-auto mb-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
+                      </svg>
+                      No transmissions recorded. Initiate your first check above.
+                    </td>
+                  </tr>
+                <% } else { %>
+                  <% checks.forEach((check, i) => { %>
+                    <tr class="hover:bg-slate-50/80 transition-colors duration-300">
+                      <td class="px-8 py-4">
+                        <span class="inline-flex items-center gap-2">
+                          <span class="w-2.5 h-2.5 rounded-full <%= check.status === 'UP' ? 'bg-green-500' : 'bg-red-500' %>"></span>
+                          <span class="<%= check.status === 'UP' ? 'text-green-600' : 'text-red-500' %> font-semibold text-xs tracking-wider"><%= check.status %></span>
+                        </span>
+                      </td>
+                      <td class="px-8 py-4 text-slate-600 font-mono text-xs max-w-[250px] truncate" title="<%= check.url %>"><%= check.url %></td>
+                      <td class="px-8 py-4 text-center">
+                        <span class="inline-block font-mono px-2 py-1 rounded-md text-xs font-semibold
+                          <%= check.httpCode && check.httpCode < 400 ? 'bg-green-100/50 text-green-700' : 'bg-red-100/50 text-red-700' %>">
+                          <%= check.httpCode || 'ERR' %>
+                        </span>
+                      </td>
+                      <td class="px-8 py-4 text-center">
+                        <div class="inline-flex items-center gap-3">
+                          <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner hidden sm:block">
+                            <div class="h-full rounded-full <%= check.latencyMs < 300 ? 'bg-green-500' : check.latencyMs < 1000 ? 'bg-amber-500' : 'bg-red-500' %>"
+                                 style="width: <%= Math.min(100, (check.latencyMs / 2000) * 100) %>%"></div>
+                          </div>
+                          <span class="text-xs font-mono text-slate-500 w-12 text-right"><%= check.latencyMs %>ms</span>
+                        </div>
+                      </td>
+                      <td class="px-8 py-4 text-right font-mono text-xs text-slate-400">
+                        <%= new Date(check.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) %>
+                      </td>
+                    </tr>
+                  <% }) %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Footer ─── -->
+    <footer class="mt-10 text-center text-xs text-slate-900 font-light tracking-wide mb-12 animate-float-3">
+      <p>API SENTINEL v1.0 • Technical Illusion Enabled</p>
+    </footer>
+  </div>
+
+  <!-- ══════════ Client-Side JS ══════════ -->
+  <script>
+    const form = document.getElementById('apiForm');
+    const urlInput = document.getElementById('urlInput');
+    const checkBtn = document.getElementById('checkBtn');
+    const btnText = document.getElementById('btnText');
+    const btnIconIdle = document.getElementById('btnIconIdle');
+    const btnIconLoading = document.getElementById('btnIconLoading');
+    const resultPanel = document.getElementById('resultPanel');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const latencyValue = document.getElementById('latencyValue');
+    const latencyBar = document.getElementById('latencyBar');
+    const httpCode = document.getElementById('httpCode');
+    const errorMsg = document.getElementById('errorMsg');
+    const resultTimestamp = document.getElementById('resultTimestamp');
+    const validateSection = document.getElementById('validateSection');
+    const validateBtn = document.getElementById('validateBtn');
+    const validateResult = document.getElementById('validateResult');
+    const validateStatus = document.getElementById('validateStatus');
+    const historyBody = document.getElementById('historyBody');
+    const logCount = document.getElementById('logCount');
+
+    let lastCheckUrl = '';
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = urlInput.value.trim();
+      if (!url) return;
+
+      lastCheckUrl = url;
+
+      // Loading state
+      checkBtn.disabled = true;
+      btnText.textContent = 'Scanning...';
+      btnIconIdle.classList.add('hidden');
+      btnIconLoading.classList.remove('hidden');
+
+      try {
+        const res = await fetch('/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          showResult(data);
+          updateHistory(data);
+        } else {
+          alert(data.error || 'Check failed');
+        }
+      } catch (err) {
+        alert('Network error: ' + err.message);
+      } finally {
+        checkBtn.disabled = false;
+        btnText.textContent = 'Initiate Check';
+        btnIconIdle.classList.remove('hidden');
+        btnIconLoading.classList.add('hidden');
+      }
+    });
+
+    function showResult(data) {
+      resultPanel.classList.remove('hidden');
+      // force re-animation
+      resultPanel.querySelector('div').classList.remove('animate-fadein');
+      void resultPanel.querySelector('div').offsetWidth;
+      resultPanel.querySelector('div').classList.add('animate-fadein');
+
+      const isUp = data.status === 'UP';
+
+      // Status dot
+      statusDot.className = `w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center ${isUp ? 'bg-green-500/20 glow-green' : 'bg-red-500/20 glow-red'}`;
+      statusDot.innerHTML = `<span class="w-6 h-6 rounded-full ${isUp ? 'bg-green-400' : 'bg-red-400'}"></span>`;
+
+      // Status text
+      statusText.textContent = data.status;
+      statusText.className = `text-2xl font-bold tracking-wider ${isUp ? 'text-green-600' : 'text-red-600'}`;
+
+      // Latency
+      latencyValue.textContent = data.latencyMs;
+      const latencyPct = Math.min(100, (data.latencyMs / 2000) * 100);
+      const latencyColor = data.latencyMs < 300 ? 'bg-green-500' : data.latencyMs < 1000 ? 'bg-amber-500' : 'bg-red-500';
+      latencyBar.className = `h-full rounded-full bar-grow ${latencyColor}`;
+      latencyBar.style.width = latencyPct + '%';
+
+      // HTTP code
+      httpCode.textContent = data.httpCode || 'ERR';
+      httpCode.className = `text-4xl font-bold font-mono ${isUp ? 'text-green-600' : 'text-red-600'}`;
+
+      // Error message
+      if (data.error) {
+        errorMsg.textContent = data.error;
+        errorMsg.classList.remove('hidden');
+      } else {
+        errorMsg.classList.add('hidden');
+      }
+
+      // Timestamp
+      resultTimestamp.textContent = new Date(data.timestamp).toLocaleString('en-US', {
+        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+
+      // Validate section
+      if (!isUp) {
+        validateSection.classList.remove('hidden');
+        validateResult.classList.add('hidden');
+      } else {
+        validateSection.classList.add('hidden');
+      }
+    }
+
+    function updateHistory(data) {
+      // Reload the page to re-render the EJS template with fresh data
+      // For a smoother UX, we rebuild the table client-side
+      const isUp = data.status === 'UP';
+      const emptyRow = historyBody.querySelector('td[colspan="5"]');
+      if (emptyRow) emptyRow.parentElement.remove();
+
+      const row = document.createElement('tr');
+      row.className = 'hover:bg-slate-50/80 transition-colors duration-300 animate-fadein';
+      row.innerHTML = `
+        <td class="px-8 py-4">
+          <span class="inline-flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full ${isUp ? 'bg-green-500' : 'bg-red-500'}"></span>
+            <span class="${isUp ? 'text-green-600' : 'text-red-600'} font-semibold text-xs tracking-wider">${data.status}</span>
+          </span>
+        </td>
+        <td class="px-8 py-4 text-slate-600 font-mono text-xs max-w-[250px] truncate" title="${data.url}">${data.url}</td>
+        <td class="px-8 py-4 text-center">
+          <span class="inline-block font-mono px-2 py-1 rounded-md text-xs font-semibold ${data.httpCode && data.httpCode < 400 ? 'bg-green-100/50 text-green-700' : 'bg-red-100/50 text-red-700'}">
+            ${data.httpCode || 'ERR'}
+          </span>
+        </td>
+        <td class="px-8 py-4 text-center">
+          <div class="inline-flex items-center gap-3">
+            <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner hidden sm:block">
+              <div class="h-full rounded-full ${data.latencyMs < 300 ? 'bg-green-500' : data.latencyMs < 1000 ? 'bg-amber-500' : 'bg-red-500'}"
+                   style="width: ${Math.min(100, (data.latencyMs / 2000) * 100)}%"></div>
+            </div>
+            <span class="text-xs font-mono text-slate-500 w-12 text-right">${data.latencyMs}ms</span>
+          </div>
+        </td>
+        <td class="px-8 py-4 text-right font-mono text-xs text-slate-400">
+          ${new Date(data.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+        </td>
+      `;
+
+      historyBody.prepend(row);
+
+      // Cap visible rows at 10
+      while (historyBody.children.length > 10) {
+        historyBody.removeChild(historyBody.lastChild);
+      }
+
+      logCount.textContent = `${Math.min(historyBody.children.length, 10)} / 10 records`;
+    }
+
+    // Validate button
+    validateBtn.addEventListener('click', async () => {
+      validateBtn.disabled = true;
+      validateBtn.innerHTML = `
+        <svg class="w-4 h-4 radar-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Agent Scanning...
+      `;
+
+      try {
+        const res = await fetch('/validate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: lastCheckUrl }),
+        });
+        const data = await res.json();
+
+        validateResult.classList.remove('hidden');
+
+        const statusMap = {
+          'operational': { color: 'text-green-600', icon: '✓', label: 'OPERATIONAL' },
+          'degraded':    { color: 'text-amber-500', icon: '⚠', label: 'DEGRADED' },
+          'unknown':     { color: 'text-slate-500', icon: '?', label: 'UNKNOWN' },
+        };
+        const s = statusMap[data.officialStatus] || statusMap.unknown;
+
+        validateStatus.innerHTML = `
+          <span class="${s.color} font-semibold">${s.icon} Official Status: ${s.label}</span>
+          ${data.statusPageUrl ? `<br><a href="${data.statusPageUrl}" target="_blank" class="text-cyan-600 hover:text-cyan-700 underline text-xs mt-1 inline-block">${data.statusPageUrl}</a>` : ''}
+          ${data.error ? `<br><span class="text-xs text-slate-500 mt-1 inline-block">Note: ${data.error}</span>` : ''}
+          ${data.details ? `<br><span class="text-xs text-slate-500 mt-1 inline-block">${data.details}</span>` : ''}
+        `;
+      } catch (err) {
+        validateResult.classList.remove('hidden');
+        validateStatus.innerHTML = `<span class="text-red-500">Error: ${err.message}</span>`;
+      } finally {
+        validateBtn.disabled = false;
+        validateBtn.innerHTML = `
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+          Launch Validation Agent
+        `;
+      }
+    });
+
+    // Set initial log count from server-rendered data
+    document.addEventListener('DOMContentLoaded', () => {
+      const rows = historyBody.querySelectorAll('tr');
+      const hasEmpty = historyBody.querySelector('td[colspan="5"]');
+      logCount.textContent = `${hasEmpty ? 0 : rows.length} / 10 records`;
+
+      // Set up BorderGlow effect for all cards
+      const applyBorderGlow = () => {
+        const cards = document.querySelectorAll('.border-glow-card');
+        
+        cards.forEach(card => {
+          const getCenterOfElement = (el) => {
+            const rect = el.getBoundingClientRect();
+            return [rect.width / 2, rect.height / 2];
+          };
+
+          const getEdgeProximity = (el, x, y) => {
+            const [cx, cy] = getCenterOfElement(el);
+            const dx = x - cx;
+            const dy = y - cy;
+            let kx = Infinity;
+            let ky = Infinity;
+            if (dx !== 0) kx = cx / Math.abs(dx);
+            if (dy !== 0) ky = cy / Math.abs(dy);
+            return Math.min(Math.max(1 / Math.min(kx, ky), 0), 1);
+          };
+
+          const getCursorAngle = (el, x, y) => {
+            const [cx, cy] = getCenterOfElement(el);
+            const dx = x - cx;
+            const dy = y - cy;
+            if (dx === 0 && dy === 0) return 0;
+            const radians = Math.atan2(dy, dx);
+            let degrees = radians * (180 / Math.PI) + 90;
+            if (degrees < 0) degrees += 360;
+            return degrees;
+          };
+
+          card.addEventListener('pointermove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const edge = getEdgeProximity(card, x, y);
+            const angle = getCursorAngle(card, x, y);
+
+            card.style.setProperty('--edge-proximity', `${(edge * 100).toFixed(3)}`);
+            card.style.setProperty('--cursor-angle', `${angle.toFixed(3)}deg`);
+          });
+        });
+      };
+      
+      applyBorderGlow();
+    });
+  </script>
+</body>
+</html>

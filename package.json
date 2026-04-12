@@ -1,0 +1,19 @@
+{
+  "name": "api-sentinel",
+  "version": "1.0.0",
+  "description": "Mission Control API Health-Check Dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "ejs": "^3.1.10",
+    "uuid": "^9.0.1",
+    "puppeteer": "^22.0.0"
+  }
+}
