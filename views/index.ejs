@@ -6,7 +6,10 @@
   <title>API SENTINEL - Mission Control</title>
   
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <!-- Base fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@400;500;600;700;800;900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400;1,700&family=Domine:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   
   <script id="tailwind-config">
@@ -69,7 +72,9 @@
           fontFamily: {
             "headline": ["Space Grotesk", "sans-serif"],
             "body": ["Inter", "sans-serif"],
-            "mono": ["JetBrains Mono", "monospace"]
+            "mono": ["JetBrains Mono", "monospace"],
+            "serif-display": ["Libre Baskerville", "Georgia", "serif"],
+            "serif-body": ["Domine", "Georgia", "serif"]
           }
         }
       }
@@ -85,6 +90,10 @@
       background-size: 100% 4px;
     }
     body { min-height: max(884px, 100dvh); overflow-x: hidden; }
+
+    /* Serif font utility classes */
+    .font-libre { font-family: "Libre Baskerville", Georgia, serif; font-optical-sizing: auto; }
+    .font-domine { font-family: "Domine", Georgia, serif; font-optical-sizing: auto; }
     
     /* animations */
     @keyframes slideUp {
@@ -107,7 +116,7 @@
     <div class="flex items-center justify-between px-6 py-4 w-full">
       <div class="flex items-center gap-3">
         <span class="material-symbols-outlined text-slate-900 text-3xl">terminal</span>
-        <h1 class="text-2xl sm:text-3xl font-black tracking-tighter text-primary font-headline uppercase tracking-widest break-words flex-wrap">API SENTINEL</h1>
+        <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-primary font-libre break-words flex-wrap">API <span class="italic font-normal">Sentinel</span></h1>
       </div>
       <nav class="hidden md:flex gap-8">
         <a class="text-primary font-headline text-sm font-bold uppercase tracking-widest transition-colors duration-150 ease-in-out hover:bg-surface-container px-3 py-2 rounded-md" href="/">MONITOR</a>
@@ -139,8 +148,8 @@
     <section class="grid grid-cols-1 lg:grid-cols-12 gap-0 border border-primary-container/10 rounded-sm overflow-hidden shadow-sm">
       <div class="lg:col-span-3 bg-primary-container p-6 flex flex-col justify-between">
         <div>
-          <h2 class="text-on-primary-container font-headline font-bold text-sm uppercase tracking-[0.2em] mb-3">Command_Entry</h2>
-          <p class="text-on-primary-container/80 text-sm leading-relaxed font-semibold">INITIALIZE NEW PROTOCOL MONITORING SERVICE BY ENTERING DESTINATION ENDPOINT.</p>
+          <h2 class="text-on-primary-container font-libre font-bold text-base italic mb-3">Command Entry</h2>
+          <p class="text-on-primary-container/80 text-sm leading-relaxed font-domine">Initialize a new protocol monitoring service by entering your destination endpoint below.</p>
         </div>
         <span class="material-symbols-outlined text-on-primary-container/20 text-6xl rotate-12 self-end mt-4 lg:mt-0">add_task</span>
       </div>
@@ -168,7 +177,7 @@
     <div id="liveResultPanel" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-0 border border-primary-container/10 rounded-sm overflow-hidden shadow-md anim-fade bg-white">
       <div class="lg:col-span-12 p-8 sm:p-10 bg-surface-container-low border-b border-primary-container/10">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-          <h2 class="font-headline font-black text-xl md:text-2xl uppercase tracking-tight">Active Scan Result</h2>
+          <h2 class="font-libre font-bold text-xl md:text-2xl italic tracking-tight">Active Scan Result</h2>
           <span id="resTimestamp" class="text-xs font-bold font-mono text-primary/50 uppercase tracking-widest break-words"></span>
         </div>
         
@@ -216,8 +225,8 @@
       <div class="lg:col-span-8 space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-primary-container/10 pb-6 gap-4">
           <div class="flex items-center gap-4">
-            <span class="bg-primary-container text-on-primary-container px-4 py-2 text-xs font-bold tracking-widest rounded-md">TRANSMISSIONS</span>
-            <h2 class="font-headline font-black text-xl sm:text-2xl uppercase tracking-tighter">Transmission Log</h2>
+            <span class="bg-primary-container text-on-primary-container px-4 py-2 text-xs font-bold tracking-widest rounded-md font-headline uppercase">TRANSMISSIONS</span>
+            <h2 class="font-libre font-bold text-xl sm:text-2xl italic">Transmission Log</h2>
           </div>
           <span id="historyCountLabel" class="text-xs font-bold opacity-50 font-mono tracking-wide uppercase shrink-0">Records: <%= checks.length %> / 10</span>
         </div>
@@ -267,8 +276,8 @@
       <!-- Recent Activity Log Section -->
       <aside class="lg:col-span-4 flex flex-col space-y-6">
         <div class="flex items-center gap-4 border-b border-primary-container/10 pb-4">
-          <span class="bg-primary text-on-primary px-4 py-2 text-xs font-bold tracking-widest uppercase rounded-md">System_Log</span>
-          <h2 class="font-headline font-black text-xl uppercase tracking-tighter">Raw Output</h2>
+          <span class="bg-primary text-on-primary px-4 py-2 text-xs font-bold tracking-widest uppercase rounded-md font-headline">System_Log</span>
+          <h2 class="font-libre font-bold text-xl italic">Raw Output</h2>
         </div>
         <div class="bg-primary-container p-6 sm:p-8 flex-1 scanline relative overflow-hidden min-h-[300px] shadow-inner rounded-md border-t border-black/20">
           <div class="relative z-10 space-y-6" id="logContainer">
