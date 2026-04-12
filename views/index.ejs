@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
   <meta name="description" content="API Sentinel — Mission Control Dashboard for real-time API health monitoring, latency measurement, and status validation." />
   <title>API Sentinel — Mission Control</title>
 
@@ -122,14 +122,15 @@
       z-index: 0;
     }
 
-    /* ── Card Float Animation ── */
-    @keyframes floatCard {
-      0%, 100% { transform: translate3d(0, 0, 0.01px); }
-      50% { transform: translate3d(0, -6px, 0.01px); }
+    /* ── Entry Animations ── */
+    @keyframes slideUpFade {
+      0% { opacity: 0; transform: translateY(30px); }
+      100% { opacity: 1; transform: translateY(0); }
     }
-    .animate-float-1 { animation: floatCard 6s ease-in-out infinite; }
-    .animate-float-2 { animation: floatCard 7s ease-in-out infinite 1s; }
-    .animate-float-3 { animation: floatCard 6.5s ease-in-out infinite 0.5s; }
+    .stagger-1 { opacity: 0; animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.1s; }
+    .stagger-2 { opacity: 0; animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.25s; }
+    .stagger-3 { opacity: 0; animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.4s; }
+    .stagger-4 { opacity: 0; animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.55s; }
 
     /* ── Custom scrollbar ── */
     ::-webkit-scrollbar { width: 6px; }
@@ -325,42 +326,41 @@
   </style>
 </head>
 
-<body class="bg-[#fdfbf7] text-slate-900 font-sans min-h-screen antialiased selection:bg-slate-200 selection:text-slate-900 overflow-x-hidden">
+<body class="bg-card-bg bg-[#fdfbf7] text-slate-900 font-sans min-h-screen antialiased selection:bg-slate-200 selection:text-slate-900 overflow-x-hidden">
 
   <!-- ══════════ Background 3D Grid ══════════ -->
   <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
     <div class="grid-bg-3d"></div>
-    <div class="absolute inset-0 bg-gradient-to-b from-[#fdfbf7] via-transparent to-[#fdfbf7] z-1 opacity-90"></div>
   </div>
 
   <!-- ══════════ Main Container ══════════ -->
   <div class="relative z-10 max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
 
     <!-- ─── Header ─── -->
-    <header class="text-center mb-10 animate-float-1">
-      <div class="inline-flex items-center gap-3 mb-2">
+    <header class="text-center mb-10 stagger-1 w-full max-w-full">
+      <div class="inline-flex items-center justify-center gap-3 mb-2 flex-wrap">
         <!-- Satellite icon -->
         <svg class="w-10 h-10 text-slate-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9.348 14.652a3.75 3.75 0 010-5.304m5.304 0a3.75 3.75 0 010 5.304m-7.425 2.121a6.75 6.75 0 010-9.546m9.546 0a6.75 6.75 0 010 9.546M5.106 18.894c-3.808-3.807-3.808-9.98 0-13.788m13.788 0c3.808 3.807 3.808 9.98 0 13.788M12 12h.008v.008H12V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
         </svg>
-        <h1 class="text-4xl sm:text-5xl tracking-tight text-slate-900">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl tracking-tight text-slate-900 break-words max-w-full">
           <span class="thin-text">API</span><span class="bold-text">SENTINEL</span>
         </h1>
       </div>
-      <p class="text-slate-900 text-sm tracking-[0.3em] font-light uppercase mt-2">Mission Control • Real-Time Monitor</p>
+      <p class="text-slate-900 text-xs sm:text-sm tracking-[0.2em] sm:tracking-[0.3em] font-light uppercase mt-2 break-words">Mission Control • Real-Time Monitor</p>
       <div class="mt-5 h-px w-32 mx-auto bg-slate-200"></div>
     </header>
 
     <!-- ─── Command Terminal Input ─── -->
-    <section id="check-form" class="mb-8 animate-float-2">
-      <div class="border-glow-card">
+    <section id="check-form" class="mb-8 stagger-2 w-full">
+      <div class="border-glow-card w-full">
         <span class="edge-light"></span>
-        <div class="border-glow-inner">
+        <div class="border-glow-inner p-4 sm:p-8">
           <div class="flex items-center gap-2 mb-4">
             <div class="w-3 h-3 rounded-full bg-slate-900"></div>
             <div class="w-3 h-3 rounded-full bg-slate-300"></div>
             <div class="w-3 h-3 rounded-full bg-slate-300"></div>
-            <span class="ml-2 text-slate-900 text-xs tracking-[0.2em] font-display font-light uppercase">SENTINEL://COMMAND_TERMINAL</span>
+            <span class="ml-2 text-slate-900 text-[10px] sm:text-xs tracking-[0.1em] sm:tracking-[0.2em] font-display font-light uppercase break-words">SENTINEL://COMMAND_TERMINAL</span>
           </div>
 
           <form id="apiForm" class="flex flex-col sm:flex-row gap-3">
@@ -373,13 +373,13 @@
                 placeholder="https://api.example.com/health"
                 required
                 autocomplete="url"
-                class="input-glow w-full font-mono font-medium bg-white border border-slate-200 rounded-xl pl-12 pr-4 py-4 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-800 transition-all duration-300 shadow-sm"
+                class="input-glow w-full font-mono font-medium bg-white border border-slate-200 rounded-xl pl-10 sm:pl-12 pr-4 py-3 sm:py-4 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-800 transition-all duration-300 shadow-sm"
               />
             </div>
             <button
               type="submit"
               id="checkBtn"
-              class="bg-slate-900 hover:bg-black text-white font-bold px-8 py-4 rounded-xl text-sm tracking-[0.1em] uppercase transition-all duration-300 ease-out shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 min-w-[200px]"
+              class="bg-slate-900 hover:bg-black text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-xs sm:text-sm tracking-[0.1em] uppercase transition-all duration-300 ease-out shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 min-w-[150px] sm:min-w-[200px]"
             >
               <svg id="btnIconIdle" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728M12 12h.008" />
@@ -395,13 +395,13 @@
     </section>
 
     <!-- ─── Live Result Panel ─── -->
-    <section id="resultPanel" class="mb-8 hidden animate-float-3">
-      <div class="border-glow-card animate-fadein">
+    <section id="resultPanel" class="mb-8 hidden stagger-3 w-full">
+      <div class="border-glow-card animate-fadein w-full">
         <span class="edge-light"></span>
-        <div class="border-glow-inner">
-          <div class="flex items-center justify-between mb-8">
-            <h2 class="text-sm tracking-[0.2em] font-light uppercase text-slate-900 font-display">Latest Transmission</h2>
-            <span id="resultTimestamp" class="text-xs text-slate-900 font-mono font-medium"></span>
+        <div class="border-glow-inner p-4 sm:p-8">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-2">
+            <h2 class="text-xs sm:text-sm tracking-[0.1em] sm:tracking-[0.2em] font-light uppercase text-slate-900 font-display">Latest Transmission</h2>
+            <span id="resultTimestamp" class="text-[10px] sm:text-xs text-slate-900 font-mono font-medium"></span>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -430,12 +430,12 @@
           <!-- Validate Button (appears on DOWN) -->
           <div id="validateSection" class="hidden mt-6 pt-5 border-t border-slate-200">
             <div class="flex flex-col sm:flex-row items-center gap-3">
-              <p class="text-sm text-slate-600">
+              <p class="text-xs sm:text-sm text-slate-600">
                 <span class="text-amber-500">⚠</span> Service appears down. Verify official status?
               </p>
               <button
                 id="validateBtn"
-                class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-6 py-2.5 rounded-lg text-xs tracking-wider uppercase transition-all duration-300 ease-out shadow hover:shadow-md hover:-translate-y-0.5 active:scale-95 flex items-center gap-2"
+                class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 ease-out shadow hover:shadow-md hover:-translate-y-0.5 active:scale-95 flex items-center gap-2 w-full sm:w-auto justify-center"
               >
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -453,29 +453,29 @@
     </section>
 
     <!-- ─── History Table ─── -->
-    <section id="historySection" class="animate-float-1">
-      <div class="border-glow-card">
+    <section id="historySection" class="stagger-4 w-full">
+      <div class="border-glow-card w-full">
         <span class="edge-light"></span>
         <div class="border-glow-inner !p-0">
-          <div class="px-8 py-5 border-b border-slate-100 flex items-center justify-between">
-            <h2 class="text-sm tracking-[0.2em] font-light uppercase text-slate-900 font-display flex items-center gap-2">
+          <div class="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <h2 class="text-xs sm:text-sm tracking-[0.1em] sm:tracking-[0.2em] font-light uppercase text-slate-900 font-display flex items-center gap-2">
               <svg class="w-4 h-4 text-slate-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Transmission Log
             </h2>
-            <span class="text-xs text-slate-900 font-mono font-medium" id="logCount">0 / 10 records</span>
+            <span class="text-[10px] sm:text-xs text-slate-900 font-mono font-medium" id="logCount">0 / 10 records</span>
           </div>
 
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+          <div class="overflow-x-auto max-w-[100vw] sm:max-w-full">
+            <table class="w-full text-xs sm:text-sm">
               <thead>
-                <tr class="text-slate-900 text-xs uppercase tracking-[0.1em] font-light bg-slate-50 border-b border-slate-100">
-                  <th class="px-8 py-4 text-left">Status</th>
-                  <th class="px-8 py-4 text-left">Endpoint</th>
-                  <th class="px-8 py-4 text-center">Code</th>
-                  <th class="px-8 py-4 text-center">Latency</th>
-                  <th class="px-8 py-4 text-right">Timestamp</th>
+                <tr class="text-slate-900 text-[10px] sm:text-xs uppercase tracking-[0.1em] font-light bg-slate-50 border-b border-slate-100">
+                  <th class="px-4 sm:px-8 py-3 sm:py-4 text-left whitespace-nowrap">Status</th>
+                  <th class="px-4 sm:px-8 py-3 sm:py-4 text-left whitespace-nowrap">Endpoint</th>
+                  <th class="px-4 sm:px-8 py-3 sm:py-4 text-center whitespace-nowrap">Code</th>
+                  <th class="px-4 sm:px-8 py-3 sm:py-4 text-center whitespace-nowrap">Latency</th>
+                  <th class="px-4 sm:px-8 py-3 sm:py-4 text-right whitespace-nowrap">Timestamp</th>
                 </tr>
               </thead>
               <tbody id="historyBody" class="divide-y divide-slate-100/50">
@@ -491,29 +491,29 @@
                 <% } else { %>
                   <% checks.forEach((check, i) => { %>
                     <tr class="hover:bg-slate-50/80 transition-colors duration-300">
-                      <td class="px-8 py-4">
+                      <td class="px-4 sm:px-8 py-3 sm:py-4 whitespace-nowrap">
                         <span class="inline-flex items-center gap-2">
-                          <span class="w-2.5 h-2.5 rounded-full <%= check.status === 'UP' ? 'bg-green-500' : 'bg-red-500' %>"></span>
-                          <span class="<%= check.status === 'UP' ? 'text-green-600' : 'text-red-500' %> font-semibold text-xs tracking-wider"><%= check.status %></span>
+                          <span class="w-2h-2 sm:w-2.5 sm:h-2.5 rounded-full <%= check.status === 'UP' ? 'bg-green-500' : 'bg-red-500' %>"></span>
+                          <span class="<%= check.status === 'UP' ? 'text-green-600' : 'text-red-500' %> font-semibold text-[10px] sm:text-xs tracking-wider"><%= check.status %></span>
                         </span>
                       </td>
-                      <td class="px-8 py-4 text-slate-600 font-mono text-xs max-w-[250px] truncate" title="<%= check.url %>"><%= check.url %></td>
-                      <td class="px-8 py-4 text-center">
-                        <span class="inline-block font-mono px-2 py-1 rounded-md text-xs font-semibold
+                      <td class="px-4 sm:px-8 py-3 sm:py-4 text-slate-600 font-mono text-[10px] sm:text-xs max-w-[150px] sm:max-w-[250px] truncate" title="<%= check.url %>"><%= check.url %></td>
+                      <td class="px-4 sm:px-8 py-3 sm:py-4 text-center whitespace-nowrap">
+                        <span class="inline-block font-mono px-2 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-semibold
                           <%= check.httpCode && check.httpCode < 400 ? 'bg-green-100/50 text-green-700' : 'bg-red-100/50 text-red-700' %>">
                           <%= check.httpCode || 'ERR' %>
                         </span>
                       </td>
-                      <td class="px-8 py-4 text-center">
-                        <div class="inline-flex items-center gap-3">
-                          <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner hidden sm:block">
+                      <td class="px-4 sm:px-8 py-3 sm:py-4 text-center whitespace-nowrap">
+                        <div class="inline-flex items-center justify-center gap-2 sm:gap-3">
+                          <div class="w-10 sm:w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner hidden min-[400px]:block">
                             <div class="h-full rounded-full <%= check.latencyMs < 300 ? 'bg-green-500' : check.latencyMs < 1000 ? 'bg-amber-500' : 'bg-red-500' %>"
                                  style="width: <%= Math.min(100, (check.latencyMs / 2000) * 100) %>%"></div>
                           </div>
-                          <span class="text-xs font-mono text-slate-500 w-12 text-right"><%= check.latencyMs %>ms</span>
+                          <span class="text-[10px] sm:text-xs font-mono text-slate-500 w-8 sm:w-12 text-right"><%= check.latencyMs %>ms</span>
                         </div>
                       </td>
-                      <td class="px-8 py-4 text-right font-mono text-xs text-slate-400">
+                      <td class="px-4 sm:px-8 py-3 sm:py-4 text-right font-mono text-[10px] sm:text-xs text-slate-400 whitespace-nowrap">
                         <%= new Date(check.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) %>
                       </td>
                     </tr>
@@ -527,7 +527,7 @@
     </section>
 
     <!-- ─── Footer ─── -->
-    <footer class="mt-10 text-center text-xs text-slate-900 font-light tracking-wide mb-12 animate-float-3">
+    <footer class="mt-8 sm:mt-10 text-center text-[10px] sm:text-xs text-slate-900 font-light tracking-wide mb-12 stagger-4">
       <p>API SENTINEL v1.0 • Technical Illusion Enabled</p>
     </footer>
   </div>
@@ -654,28 +654,28 @@
       const row = document.createElement('tr');
       row.className = 'hover:bg-slate-50/80 transition-colors duration-300 animate-fadein';
       row.innerHTML = `
-        <td class="px-8 py-4">
+        <td class="px-4 sm:px-8 py-3 sm:py-4 whitespace-nowrap">
           <span class="inline-flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full ${isUp ? 'bg-green-500' : 'bg-red-500'}"></span>
-            <span class="${isUp ? 'text-green-600' : 'text-red-600'} font-semibold text-xs tracking-wider">${data.status}</span>
+            <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${isUp ? 'bg-green-500' : 'bg-red-500'}"></span>
+            <span class="${isUp ? 'text-green-600' : 'text-red-600'} font-semibold text-[10px] sm:text-xs tracking-wider">${data.status}</span>
           </span>
         </td>
-        <td class="px-8 py-4 text-slate-600 font-mono text-xs max-w-[250px] truncate" title="${data.url}">${data.url}</td>
-        <td class="px-8 py-4 text-center">
-          <span class="inline-block font-mono px-2 py-1 rounded-md text-xs font-semibold ${data.httpCode && data.httpCode < 400 ? 'bg-green-100/50 text-green-700' : 'bg-red-100/50 text-red-700'}">
+        <td class="px-4 sm:px-8 py-3 sm:py-4 text-slate-600 font-mono text-[10px] sm:text-xs max-w-[150px] sm:max-w-[250px] truncate" title="${data.url}">${data.url}</td>
+        <td class="px-4 sm:px-8 py-3 sm:py-4 text-center whitespace-nowrap">
+          <span class="inline-block font-mono px-2 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-semibold ${data.httpCode && data.httpCode < 400 ? 'bg-green-100/50 text-green-700' : 'bg-red-100/50 text-red-700'}">
             ${data.httpCode || 'ERR'}
           </span>
         </td>
-        <td class="px-8 py-4 text-center">
-          <div class="inline-flex items-center gap-3">
-            <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner hidden sm:block">
+        <td class="px-4 sm:px-8 py-3 sm:py-4 text-center whitespace-nowrap">
+          <div class="inline-flex items-center justify-center gap-2 sm:gap-3">
+            <div class="w-10 sm:w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner hidden min-[400px]:block">
               <div class="h-full rounded-full ${data.latencyMs < 300 ? 'bg-green-500' : data.latencyMs < 1000 ? 'bg-amber-500' : 'bg-red-500'}"
                    style="width: ${Math.min(100, (data.latencyMs / 2000) * 100)}%"></div>
             </div>
-            <span class="text-xs font-mono text-slate-500 w-12 text-right">${data.latencyMs}ms</span>
+            <span class="text-[10px] sm:text-xs font-mono text-slate-500 w-8 sm:w-12 text-right">${data.latencyMs}ms</span>
           </div>
         </td>
-        <td class="px-8 py-4 text-right font-mono text-xs text-slate-400">
+        <td class="px-4 sm:px-8 py-3 sm:py-4 text-right font-mono text-[10px] sm:text-xs text-slate-400 whitespace-nowrap">
           ${new Date(data.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
         </td>
       `;
