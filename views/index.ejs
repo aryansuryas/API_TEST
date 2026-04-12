@@ -1,795 +1,477 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-  <meta name="description" content="API Sentinel — Mission Control Dashboard for real-time API health monitoring, latency measurement, and status validation." />
-  <title>API Sentinel — Mission Control</title>
-
-  <!-- Tailwind v4 CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
-  <!-- Fonts: Inter for UI, JetBrains Mono for data, Outfit for Display -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;600;700;800;900&family=Roboto:wght@100;400;700&display=swap" rel="stylesheet" />
-
-  <style type="text/tailwindcss">
-    @theme {
-      --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-      --font-display: 'Outfit', sans-serif;
-      --color-sentinel-cyan: #22d3ee;
-      --color-sentinel-green: #10b981;
-      --color-sentinel-red: #ef4444;
-      --color-sentinel-amber: #f59e0b;
-      --color-panel: rgba(255, 255, 255, 0.85); /* Light panel */
-      --color-panel-border: rgba(200, 200, 200, 0.6);
-      --card-bg: #fdfbf7; /* Cream background */
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"/>
+  <title>API SENTINEL - Mission Control</title>
+  
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-variant": "#e4e4cc",
+            "on-surface-variant": "#45464d",
+            "primary-fixed": "#dae2fd",
+            "surface-tint": "#565e74",
+            "on-primary-container": "#7c839b",
+            "primary-fixed-dim": "#bec6e0",
+            "primary": "#000000",
+            "on-tertiary": "#ffffff",
+            "surface-container-high": "#eae1cc",
+            "outline-variant": "#c6c6cd",
+            "inverse-on-surface": "#f2f2d9",
+            "on-secondary-fixed": "#00210c",
+            "inverse-primary": "#bec6e0",
+            "on-error-container": "#93000a",
+            "inverse-surface": "#303221",
+            "on-secondary-container": "#007439",
+            "on-secondary": "#ffffff",
+            "error-container": "#ffdad6",
+            "secondary": "#006d36",
+            "tertiary": "#000000",
+            "on-tertiary-container": "#da5a5b",
+            "tertiary-container": "#410006",
+            "background": "#fdfbf7", /* refined cream */
+            "surface-container-highest": "#f0ebde",
+            "secondary-fixed": "#6dfe9c",
+            "primary-container": "#131b2e",
+            "surface-bright": "#fdfbf7",
+            "surface": "#fdfbf7",
+            "on-background": "#1b1d0e",
+            "tertiary-fixed": "#ffdad8",
+            "tertiary-fixed-dim": "#ffb3b0",
+            "on-primary": "#ffffff",
+            "surface-container": "#f4f1ea",
+            "outline": "#76777d",
+            "secondary-fixed-dim": "#4de082",
+            "on-surface": "#1b1d0e",
+            "on-secondary-fixed-variant": "#005227",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-fixed": "#131b2e",
+            "surface-container-low": "#faf8f2",
+            "on-error": "#ffffff",
+            "on-tertiary-fixed": "#410006",
+            "secondary-container": "#6dfe9c",
+            "on-tertiary-fixed-variant": "#881d24",
+            "error": "#ba1a1a",
+            "on-primary-fixed-variant": "#3f465c",
+            "surface-dim": "#f5f0e6",
+            "green-pip": "#10b981",
+            "red-pip": "#ef4444",
+            "amber-pip": "#f59e0b"
+          },
+          fontFamily: {
+            "headline": ["Space Grotesk", "sans-serif"],
+            "body": ["Inter", "sans-serif"],
+            "mono": ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
     }
-  </style>
-
+  </script>
   <style>
-
-    .thin-text {
-      font-family: 'Roboto', sans-serif;
-      font-weight: 100;
-      letter-spacing: 0.1em;
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .glow-green { box-shadow: 0 0 12px #10b981; }
+    .glow-error { box-shadow: 0 0 12px #ef4444; }
+    .glow-amber { box-shadow: 0 0 12px #f59e0b; }
+    .scanline {
+      background: linear-gradient(to bottom, transparent 50%, rgba(19, 27, 46, 0.05) 50%);
+      background-size: 100% 4px;
     }
-
-    .bold-text {
-      font-family: 'Roboto', sans-serif;
-      font-weight: 700;
+    body { min-height: max(884px, 100dvh); overflow-x: hidden; }
+    
+    /* animations */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-
-    /* ── Scanline overlay ── */
-    .scanlines::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0, 0, 0, 0.06) 2px,
-        rgba(0, 0, 0, 0.06) 4px
-      );
-      pointer-events: none;
-      z-index: 999;
-    }
-
-    /* ── Glow pulses ── */
-    @keyframes pulseGreen {
-      0%, 100% { box-shadow: 0 0 8px 2px rgba(74, 222, 128, 0.5), 0 0 20px 4px rgba(74, 222, 128, 0.2); }
-      50% { box-shadow: 0 0 16px 6px rgba(74, 222, 128, 0.7), 0 0 40px 10px rgba(74, 222, 128, 0.3); }
-    }
-    @keyframes pulseRed {
-      0%, 100% { box-shadow: 0 0 8px 2px rgba(248, 113, 113, 0.5), 0 0 20px 4px rgba(248, 113, 113, 0.2); }
-      50% { box-shadow: 0 0 16px 6px rgba(248, 113, 113, 0.7), 0 0 40px 10px rgba(248, 113, 113, 0.3); }
-    }
-    .glow-green { animation: pulseGreen 2s ease-in-out infinite; }
-    .glow-red   { animation: pulseRed 2s ease-in-out infinite; }
-
-    /* ── Radar spin ── */
-    @keyframes radarSpin {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
-    .radar-spin { animation: radarSpin 1.5s linear infinite; }
-
-    /* ── Typing cursor ── */
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
-    .cursor-blink::after {
-      content: '█';
-      animation: blink 1s step-end infinite;
-      color: #22d3ee;
-      margin-left: 2px;
-    }
-
-    /* ── Fade in for results ── */
-    @keyframes fadeSlideIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fadein { animation: fadeSlideIn 0.4s ease-out forwards; }
-
-    /* ── Latency bar fill ── */
-    @keyframes barGrow {
-      from { width: 0; }
-    }
-    .bar-grow { animation: barGrow 0.6s ease-out forwards; }
-
-    /* ── 3D Grid Illusion ── */
-    @keyframes gridMove {
-      0% { transform: perspective(800px) rotateX(60deg) translateY(0); }
-      100% { transform: perspective(800px) rotateX(60deg) translateY(40px); }
-    }
-    .grid-bg-3d {
-      position: absolute;
-      inset: -50%;
-      width: 200%;
-      height: 200%;
-      background-image:
-        linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
-      background-size: 40px 40px;
-      transform-origin: center center;
-      animation: gridMove 6s linear infinite;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* ── Entry Animations ── */
-    @keyframes slideUpFade {
-      0% { opacity: 0; transform: translateY(30px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-    .stagger-1 { opacity: 0; animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.1s; }
-    .stagger-2 { opacity: 0; animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.25s; }
-    .stagger-3 { opacity: 0; animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.4s; }
-    .stagger-4 { opacity: 0; animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.55s; }
-
-    /* ── Custom scrollbar ── */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #475569; }
-
-    /* ── Input focus glow ── */
-    .input-glow:focus {
-      box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.3), 0 0 20px rgba(34, 211, 238, 0.1);
-    }
-
-    /* ── Button hover ── */
-    .btn-sentinel {
-      position: relative;
-      overflow: hidden;
-    }
-    .btn-sentinel::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-      transform: translateX(-100%);
-      transition: transform 0.5s;
-    }
-    .btn-sentinel:hover::before {
-      transform: translateX(100%);
-    }
-
-    /* ── Status badge shimmer ── */
-    @keyframes shimmer {
-      0% { background-position: -200% center; }
-      100% { background-position: 200% center; }
-    }
-
-    /* Modal backdrop */
-    .modal-backdrop {
-      backdrop-filter: blur(8px);
-      background: rgba(255,255,255,0.6);
-    }
-
-    /* ── BorderGlow CSS ── */
-    .border-glow-card {
-      --edge-proximity: 0;
-      --cursor-angle: 45deg;
-      --edge-sensitivity: 30;
-      --color-sensitivity: calc(var(--edge-sensitivity) + 20);
-      --border-radius: 28px;
-      --glow-padding: 40px;
-      --cone-spread: 25;
-      
-      --gradient-base: linear-gradient(#e5e7eb 0 100%);
-      --glow-color: hsl(200deg 80% 80% / 100%);
-      --glow-color-60: hsl(200deg 80% 80% / 60%);
-      --glow-color-50: hsl(200deg 80% 80% / 50%);
-      --glow-color-40: hsl(200deg 80% 80% / 40%);
-      --glow-color-30: hsl(200deg 80% 80% / 30%);
-      --glow-color-20: hsl(200deg 80% 80% / 20%);
-      --glow-color-10: hsl(200deg 80% 80% / 10%);
-
-      position: relative;
-      border-radius: var(--border-radius);
-      isolation: isolate;
-      transform: translate3d(0, 0, 0.01px);
-      display: grid;
-      border: 1px solid rgba(0, 0, 0, 0.03);
-      background: var(--card-bg, #fdfbf7);
-      overflow: visible;
-      box-shadow:
-        rgba(0, 0, 0, 0.05) 0px 1px 2px,
-        rgba(0, 0, 0, 0.05) 0px 2px 4px,
-        rgba(0, 0, 0, 0.05) 0px 4px 8px;
-    }
-
-    .border-glow-card::before,
-    .border-glow-card::after,
-    .border-glow-card > .edge-light {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      transition: opacity 0.25s ease-out;
-      z-index: -1;
-    }
-
-    .border-glow-card:not(:hover):not(.sweep-active)::before,
-    .border-glow-card:not(:hover):not(.sweep-active)::after,
-    .border-glow-card:not(:hover):not(.sweep-active) > .edge-light {
-      opacity: 0;
-      transition: opacity 0.75s ease-in-out;
-    }
-
-    /* colored mesh-gradient border */
-    .border-glow-card::before {
-      border: 1px solid transparent;
-      background:
-        linear-gradient(var(--card-bg, #fdfbf7) 0 100%) padding-box,
-        linear-gradient(rgba(0,0,0,0) 0% 100%) border-box,
-        var(--gradient-one, radial-gradient(at 80% 55%, hsla(200, 100%, 76%, 1) 0px, transparent 50%)) border-box,
-        var(--gradient-two, radial-gradient(at 69% 34%, hsla(160, 100%, 74%, 1) 0px, transparent 50%)) border-box,
-        var(--gradient-three, radial-gradient(at 8% 6%, hsla(136, 100%, 78%, 1) 0px, transparent 50%)) border-box,
-        var(--gradient-four, radial-gradient(at 41% 38%, hsla(192, 100%, 64%, 1) 0px, transparent 50%)) border-box,
-        var(--gradient-five, radial-gradient(at 86% 85%, hsla(186, 100%, 74%, 1) 0px, transparent 50%)) border-box,
-        var(--gradient-six, radial-gradient(at 82% 18%, hsla(52, 100%, 65%, 1) 0px, transparent 50%)) border-box,
-        var(--gradient-seven, radial-gradient(at 51% 4%, hsla(210, 100%, 72%, 1) 0px, transparent 50%)) border-box,
-        var(--gradient-base, linear-gradient(#e5e7eb 0 100%)) border-box;
-
-      opacity: calc((var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
-
-      mask-image:
-        conic-gradient(
-          from var(--cursor-angle) at center,
-          black calc(var(--cone-spread) * 1%),
-          transparent calc((var(--cone-spread) + 15) * 1%),
-          transparent calc((100 - var(--cone-spread) - 15) * 1%),
-          black calc((100 - var(--cone-spread)) * 1%)
-        );
-    }
-
-    /* colored mesh-gradient background fill near edges */
-    .border-glow-card::after {
-      border: 1px solid transparent;
-      background:
-        var(--gradient-one, radial-gradient(at 80% 55%, hsla(200, 100%, 76%, 1) 0px, transparent 50%)) padding-box,
-        var(--gradient-two, radial-gradient(at 69% 34%, hsla(160, 100%, 74%, 1) 0px, transparent 50%)) padding-box,
-        var(--gradient-three, radial-gradient(at 8% 6%, hsla(136, 100%, 78%, 1) 0px, transparent 50%)) padding-box,
-        var(--gradient-four, radial-gradient(at 41% 38%, hsla(192, 100%, 64%, 1) 0px, transparent 50%)) padding-box,
-        var(--gradient-five, radial-gradient(at 86% 85%, hsla(186, 100%, 74%, 1) 0px, transparent 50%)) padding-box,
-        var(--gradient-six, radial-gradient(at 82% 18%, hsla(52, 100%, 65%, 1) 0px, transparent 50%)) padding-box,
-        var(--gradient-seven, radial-gradient(at 51% 4%, hsla(210, 100%, 72%, 1) 0px, transparent 50%)) padding-box,
-        var(--gradient-base, linear-gradient(#e5e7eb 0 100%)) padding-box;
-
-      mask-image:
-        linear-gradient(to bottom, black, black),
-        radial-gradient(ellipse at 50% 50%, black 40%, transparent 65%),
-        radial-gradient(ellipse at 66% 66%, black 5%, transparent 40%),
-        radial-gradient(ellipse at 33% 33%, black 5%, transparent 40%),
-        radial-gradient(ellipse at 66% 33%, black 5%, transparent 40%),
-        radial-gradient(ellipse at 33% 66%, black 5%, transparent 40%),
-        conic-gradient(from var(--cursor-angle) at center, transparent 5%, black 15%, black 85%, transparent 95%);
-
-      mask-composite: subtract, add, add, add, add, add;
-      opacity: calc(var(--fill-opacity, 0.5) * (var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
-      mix-blend-mode: multiply; /* changed from soft-light for light theme */
-    }
-
-    /* outer glow layer */
-    .border-glow-card > .edge-light {
-      inset: calc(var(--glow-padding) * -1);
-      pointer-events: none;
-      z-index: 1;
-
-      mask-image:
-        conic-gradient(
-          from var(--cursor-angle) at center, black 2.5%, transparent 10%, transparent 90%, black 97.5%
-        );
-
-      opacity: calc((var(--edge-proximity) - var(--edge-sensitivity)) / (100 - var(--edge-sensitivity)));
-      mix-blend-mode: normal; /* changed from plus-lighter for light theme */
-    }
-
-    .border-glow-card > .edge-light::before {
-      content: "";
-      position: absolute;
-      inset: var(--glow-padding);
-      border-radius: inherit;
-      box-shadow:
-        inset 0 0 0 1px var(--glow-color, hsl(200deg 80% 80% / 100%)),
-        inset 0 0 1px 0 var(--glow-color-60, hsl(200deg 80% 80% / 60%)),
-        inset 0 0 3px 0 var(--glow-color-50, hsl(200deg 80% 80% / 50%)),
-        inset 0 0 6px 0 var(--glow-color-40, hsl(200deg 80% 80% / 40%)),
-        inset 0 0 15px 0 var(--glow-color-30, hsl(200deg 80% 80% / 30%)),
-        inset 0 0 25px 2px var(--glow-color-20, hsl(200deg 80% 80% / 20%)),
-        inset 0 0 50px 2px var(--glow-color-10, hsl(200deg 80% 80% / 10%)),
-        0 0 1px 0 var(--glow-color-60, hsl(200deg 80% 80% / 60%)),
-        0 0 3px 0 var(--glow-color-50, hsl(200deg 80% 80% / 50%)),
-        0 0 6px 0 var(--glow-color-40, hsl(200deg 80% 80% / 40%)),
-        0 0 15px 0 var(--glow-color-30, hsl(200deg 80% 80% / 30%)),
-        0 0 25px 2px var(--glow-color-20, hsl(200deg 80% 80% / 20%)),
-        0 0 50px 2px var(--glow-color-10, hsl(200deg 80% 80% / 10%));
-    }
-
-    .border-glow-inner {
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      overflow: auto;
-      z-index: 1;
-      background: var(--card-bg, #fdfbf7);
-      border-radius: var(--border-radius);
-      padding: 2rem; /* Increased padding for better breathing room */
-    }
+    .anim-fade { animation: slideUp 0.4s ease-out forwards; }
+    
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .spinning { animation: spin 1s linear infinite; }
   </style>
 </head>
+<body class="bg-background font-body text-on-surface min-h-screen pb-24 md:pb-0 font-medium tracking-tight">
 
-<body class="bg-card-bg bg-[#fdfbf7] text-slate-900 font-sans min-h-screen antialiased selection:bg-slate-200 selection:text-slate-900 overflow-x-hidden">
-
-  <!-- ══════════ Background 3D Grid ══════════ -->
-  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-    <div class="grid-bg-3d"></div>
-  </div>
-
-  <!-- ══════════ Main Container ══════════ -->
-  <div class="relative z-10 max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-
-    <!-- ─── Header ─── -->
-    <header class="text-center mb-10 stagger-1 w-full max-w-full">
-      <div class="inline-flex items-center justify-center gap-3 mb-2 flex-wrap">
-        <!-- Satellite icon -->
-        <svg class="w-10 h-10 text-slate-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9.348 14.652a3.75 3.75 0 010-5.304m5.304 0a3.75 3.75 0 010 5.304m-7.425 2.121a6.75 6.75 0 010-9.546m9.546 0a6.75 6.75 0 010 9.546M5.106 18.894c-3.808-3.807-3.808-9.98 0-13.788m13.788 0c3.808 3.807 3.808 9.98 0 13.788M12 12h.008v.008H12V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-        </svg>
-        <h1 class="text-3xl sm:text-4xl md:text-5xl tracking-tight text-slate-900 break-words max-w-full">
-          <span class="thin-text">API</span><span class="bold-text">SENTINEL</span>
-        </h1>
+  <!-- TopAppBar -->
+  <header class="bg-[#fdfbf7] border-b border-primary-container/10 sm:border-none rounded-none w-full top-0 sticky z-50 shadow-sm sm:shadow-none">
+    <div class="flex items-center justify-between px-6 py-4 w-full">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-slate-900">terminal</span>
+        <h1 class="text-xl sm:text-2xl font-black tracking-tighter text-primary font-headline uppercase tracking-widest break-words flex-wrap">API SENTINEL</h1>
       </div>
-      <p class="text-slate-900 text-xs sm:text-sm tracking-[0.2em] sm:tracking-[0.3em] font-light uppercase mt-2 break-words">Mission Control • Real-Time Monitor</p>
-      <div class="mt-5 h-px w-32 mx-auto bg-slate-200"></div>
-    </header>
-
-    <!-- ─── Command Terminal Input ─── -->
-    <section id="check-form" class="mb-8 stagger-2 w-full">
-      <div class="border-glow-card w-full">
-        <span class="edge-light"></span>
-        <div class="border-glow-inner p-4 sm:p-8">
-          <div class="flex items-center gap-2 mb-4">
-            <div class="w-3 h-3 rounded-full bg-slate-900"></div>
-            <div class="w-3 h-3 rounded-full bg-slate-300"></div>
-            <div class="w-3 h-3 rounded-full bg-slate-300"></div>
-            <span class="ml-2 text-slate-900 text-[10px] sm:text-xs tracking-[0.1em] sm:tracking-[0.2em] font-display font-light uppercase break-words">SENTINEL://COMMAND_TERMINAL</span>
-          </div>
-
-          <form id="apiForm" class="flex flex-col sm:flex-row gap-3">
-            <div class="flex-1 relative">
-              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-600 text-sm select-none">▶</span>
-              <input
-                type="url"
-                id="urlInput"
-                name="url"
-                placeholder="https://api.example.com/health"
-                required
-                autocomplete="url"
-                class="input-glow w-full font-mono font-medium bg-white border border-slate-200 rounded-xl pl-10 sm:pl-12 pr-4 py-3 sm:py-4 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-800 transition-all duration-300 shadow-sm"
-              />
-            </div>
-            <button
-              type="submit"
-              id="checkBtn"
-              class="bg-slate-900 hover:bg-black text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-xs sm:text-sm tracking-[0.1em] uppercase transition-all duration-300 ease-out shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 min-w-[150px] sm:min-w-[200px]"
-            >
-              <svg id="btnIconIdle" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728M12 12h.008" />
-              </svg>
-              <svg id="btnIconLoading" class="w-4 h-4 radar-spin hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span id="btnText">Initiate Check</span>
-            </button>
-          </form>
+      <nav class="hidden md:flex gap-8">
+        <a class="text-primary font-headline text-xs font-bold uppercase tracking-widest transition-colors duration-150 ease-in-out hover:bg-surface-container px-2 py-1" href="/">MONITOR</a>
+      </nav>
+      <div class="flex items-center gap-4">
+        <div class="hidden sm:flex flex-col items-end">
+          <span class="text-[10px] font-bold uppercase tracking-tighter opacity-50">System Status</span>
+          <span class="text-[10px] font-bold uppercase text-green-600 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-green-500 glow-green"></span>
+            Operational
+          </span>
         </div>
       </div>
-    </section>
+    </div>
+    <div class="bg-[#131b2e] h-1 w-full relative overflow-hidden">
+      <div class="absolute inset-0 bg-secondary-fixed w-1/4 animate-[slide_2s_ease-in-out_infinite]"></div>
+    </div>
+  </header>
 
-    <!-- ─── Live Result Panel ─── -->
-    <section id="resultPanel" class="mb-8 hidden stagger-3 w-full">
-      <div class="border-glow-card animate-fadein w-full">
-        <span class="edge-light"></span>
-        <div class="border-glow-inner p-4 sm:p-8">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-2">
-            <h2 class="text-xs sm:text-sm tracking-[0.1em] sm:tracking-[0.2em] font-light uppercase text-slate-900 font-display">Latest Transmission</h2>
-            <span id="resultTimestamp" class="text-[10px] sm:text-xs text-slate-900 font-mono font-medium"></span>
-          </div>
+  <style>
+    @keyframes slide {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(400%); }
+    }
+  </style>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <!-- Status -->
-            <div class="text-center">
-              <div id="statusDot" class="w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center"></div>
-              <p id="statusText" class="text-2xl font-bold tracking-wider"></p>
-              <p class="text-xs text-slate-500 mt-1 uppercase tracking-wider">Status</p>
-            </div>
-            <!-- Latency -->
-            <div class="text-center">
-              <p id="latencyValue" class="text-4xl font-bold font-mono text-cyan-600"></p>
-              <p class="text-xs text-slate-500 mt-2 uppercase tracking-wide">Latency (ms)</p>
-              <div class="mt-3 h-2 bg-slate-200 rounded-full overflow-hidden max-w-[150px] mx-auto shadow-inner">
-                <div id="latencyBar" class="h-full rounded-full bar-grow"></div>
+  <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-12 space-y-8 sm:space-y-12">
+    <!-- Add New Monitor Section -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-0 border border-primary-container/10 rounded-sm overflow-hidden shadow-sm">
+      <div class="lg:col-span-3 bg-primary-container p-6 flex flex-col justify-between">
+        <div>
+          <h2 class="text-on-primary-container font-headline font-bold text-xs uppercase tracking-[0.2em] mb-2">Command_Entry</h2>
+          <p class="text-on-primary-container/60 text-[11px] leading-relaxed font-semibold">INITIALIZE NEW PROTOCOL MONITORING SERVICE BY ENTERING DESTINATION ENDPOINT.</p>
+        </div>
+        <span class="material-symbols-outlined text-on-primary-container/20 text-6xl rotate-12 self-end mt-4 lg:mt-0">add_task</span>
+      </div>
+      
+      <div class="lg:col-span-9 bg-surface-container-low p-6 sm:p-8">
+        <form id="apiForm" class="flex flex-col md:flex-row items-end gap-6 w-full h-full">
+          <div class="flex-1 w-full group">
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-primary mb-3">Endpoint Destination URL</label>
+            <div class="relative">
+              <input id="urlInput" required class="w-full bg-surface-container-highest border border-primary-container/10 focus:ring-2 focus:ring-primary text-primary font-mono text-sm sm:text-base p-4 placeholder:opacity-40 transition-all font-bold rounded-sm" placeholder="https://api.v1.production.com/health" type="url"/>
+              <div class="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2">
+                <span class="text-[10px] font-bold opacity-30">AUTO_TLS</span>
               </div>
             </div>
-            <!-- HTTP Code -->
-            <div class="text-center">
-              <p id="httpCode" class="text-4xl font-bold font-mono"></p>
-              <p class="text-xs text-slate-500 mt-2 uppercase tracking-wide">HTTP Code</p>
-              <p id="errorMsg" class="text-xs text-red-500 mt-2 hidden"></p>
-            </div>
           </div>
-
-          <!-- Validate Button (appears on DOWN) -->
-          <div id="validateSection" class="hidden mt-6 pt-5 border-t border-slate-200">
-            <div class="flex flex-col sm:flex-row items-center gap-3">
-              <p class="text-xs sm:text-sm text-slate-600">
-                <span class="text-amber-500">⚠</span> Service appears down. Verify official status?
-              </p>
-              <button
-                id="validateBtn"
-                class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 ease-out shadow hover:shadow-md hover:-translate-y-0.5 active:scale-95 flex items-center gap-2 w-full sm:w-auto justify-center"
-              >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                </svg>
-                Launch Validation Agent
-              </button>
-            </div>
-            <div id="validateResult" class="hidden mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200 animate-fadein">
-              <p class="text-xs text-slate-500 uppercase tracking-wider mb-2">Agent Report</p>
-              <p id="validateStatus" class="text-sm"></p>
-            </div>
-          </div>
-        </div>
+          <button id="checkBtn" type="submit" class="w-full md:w-auto bg-primary text-on-primary px-8 py-4 font-headline font-bold text-xs uppercase tracking-[0.2em] hover:bg-slate-800 transition-all flex items-center justify-center gap-3 active:scale-[0.98] rounded-sm">
+            <span id="btnText">Start Scan</span>
+            <span id="btnIcon" class="material-symbols-outlined text-sm">rocket_launch</span>
+          </button>
+        </form>
       </div>
     </section>
 
-    <!-- ─── History Table ─── -->
-    <section id="historySection" class="stagger-4 w-full">
-      <div class="border-glow-card w-full">
-        <span class="edge-light"></span>
-        <div class="border-glow-inner !p-0">
-          <div class="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-            <h2 class="text-xs sm:text-sm tracking-[0.1em] sm:tracking-[0.2em] font-light uppercase text-slate-900 font-display flex items-center gap-2">
-              <svg class="w-4 h-4 text-slate-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Transmission Log
-            </h2>
-            <span class="text-[10px] sm:text-xs text-slate-900 font-mono font-medium" id="logCount">0 / 10 records</span>
+    <!-- LIVE VALIDATION PANEL (Hidden by Default) -->
+    <div id="liveResultPanel" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-0 border border-primary-container/10 rounded-sm overflow-hidden shadow-md anim-fade bg-white">
+      <div class="lg:col-span-12 p-6 sm:p-8 bg-surface-container-low border-b border-primary-container/10">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          <h2 class="font-headline font-black text-lg uppercase tracking-tight">Active Scan Result</h2>
+          <span id="resTimestamp" class="text-[10px] font-bold font-mono text-primary/50 uppercase tracking-widest break-words"></span>
+        </div>
+        
+        <div class="flex flex-col md:flex-row items-center gap-8">
+          <div class="flex items-center gap-4 flex-1 w-full sm:w-auto">
+            <div id="resDot" class="w-12 h-12 rounded-full flex items-center justify-center filter drop-shadow-sm shrink-0">
+               <span class="material-symbols-outlined text-white" id="resIcon">settings_ethernet</span>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold opacity-50 uppercase tracking-widest mb-1">Status Code</p>
+              <h3 id="resCode" class="font-mono text-3xl font-black">200</h3>
+            </div>
           </div>
-
-          <div class="overflow-x-auto max-w-[100vw] sm:max-w-full">
-            <table class="w-full text-xs sm:text-sm">
-              <thead>
-                <tr class="text-slate-900 text-[10px] sm:text-xs uppercase tracking-[0.1em] font-light bg-slate-50 border-b border-slate-100">
-                  <th class="px-4 sm:px-8 py-3 sm:py-4 text-left whitespace-nowrap">Status</th>
-                  <th class="px-4 sm:px-8 py-3 sm:py-4 text-left whitespace-nowrap">Endpoint</th>
-                  <th class="px-4 sm:px-8 py-3 sm:py-4 text-center whitespace-nowrap">Code</th>
-                  <th class="px-4 sm:px-8 py-3 sm:py-4 text-center whitespace-nowrap">Latency</th>
-                  <th class="px-4 sm:px-8 py-3 sm:py-4 text-right whitespace-nowrap">Timestamp</th>
-                </tr>
-              </thead>
-              <tbody id="historyBody" class="divide-y divide-slate-100/50">
-                <% if (checks.length === 0) { %>
-                  <tr>
-                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">
-                      <svg class="w-8 h-8 mx-auto mb-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
-                      </svg>
-                      No transmissions recorded. Initiate your first check above.
-                    </td>
-                  </tr>
-                <% } else { %>
-                  <% checks.forEach((check, i) => { %>
-                    <tr class="hover:bg-slate-50/80 transition-colors duration-300">
-                      <td class="px-4 sm:px-8 py-3 sm:py-4 whitespace-nowrap">
-                        <span class="inline-flex items-center gap-2">
-                          <span class="w-2h-2 sm:w-2.5 sm:h-2.5 rounded-full <%= check.status === 'UP' ? 'bg-green-500' : 'bg-red-500' %>"></span>
-                          <span class="<%= check.status === 'UP' ? 'text-green-600' : 'text-red-500' %> font-semibold text-[10px] sm:text-xs tracking-wider"><%= check.status %></span>
-                        </span>
-                      </td>
-                      <td class="px-4 sm:px-8 py-3 sm:py-4 text-slate-600 font-mono text-[10px] sm:text-xs max-w-[150px] sm:max-w-[250px] truncate" title="<%= check.url %>"><%= check.url %></td>
-                      <td class="px-4 sm:px-8 py-3 sm:py-4 text-center whitespace-nowrap">
-                        <span class="inline-block font-mono px-2 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-semibold
-                          <%= check.httpCode && check.httpCode < 400 ? 'bg-green-100/50 text-green-700' : 'bg-red-100/50 text-red-700' %>">
-                          <%= check.httpCode || 'ERR' %>
-                        </span>
-                      </td>
-                      <td class="px-4 sm:px-8 py-3 sm:py-4 text-center whitespace-nowrap">
-                        <div class="inline-flex items-center justify-center gap-2 sm:gap-3">
-                          <div class="w-10 sm:w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner hidden min-[400px]:block">
-                            <div class="h-full rounded-full <%= check.latencyMs < 300 ? 'bg-green-500' : check.latencyMs < 1000 ? 'bg-amber-500' : 'bg-red-500' %>"
-                                 style="width: <%= Math.min(100, (check.latencyMs / 2000) * 100) %>%"></div>
-                          </div>
-                          <span class="text-[10px] sm:text-xs font-mono text-slate-500 w-8 sm:w-12 text-right"><%= check.latencyMs %>ms</span>
-                        </div>
-                      </td>
-                      <td class="px-4 sm:px-8 py-3 sm:py-4 text-right font-mono text-[10px] sm:text-xs text-slate-400 whitespace-nowrap">
-                        <%= new Date(check.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) %>
-                      </td>
-                    </tr>
-                  <% }) %>
-                <% } %>
-              </tbody>
-            </table>
+          
+          <div class="flex-1 w-full border-t md:border-t-0 md:border-l border-primary-container/10 pt-4 md:pt-0 pl-0 md:pl-8">
+            <p class="text-[10px] font-bold opacity-50 uppercase tracking-widest mb-1">Latency</p>
+            <h3 id="resLat" class="font-headline text-3xl font-black text-primary">0<span class="text-sm">ms</span></h3>
+            <div class="w-full h-1.5 bg-surface-variant mt-2 rounded-full overflow-hidden">
+                <div id="resLatBar" class="h-full bg-primary transition-all duration-500 ease-out" style="width: 0%"></div>
+            </div>
           </div>
         </div>
+
+        <div id="resErrBody" class="hidden mt-4 p-4 bg-error-container/20 border-l-4 border-error text-error font-mono text-xs font-bold leading-relaxed break-words shadow-sm"></div>
+
+        <!-- Agentic Validation Engine -->
+        <div id="agentUI" class="hidden mt-6 pt-6 border-t border-primary-container/10">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <p class="text-xs font-bold font-headline uppercase text-error tracking-wider flex items-center gap-2">
+              <span class="material-symbols-outlined text-base">warning</span> Service Down. Run Web Agent?
+            </p>
+            <button id="agentBtn" class="w-full sm:w-auto bg-[#ba1a1a] text-white px-6 py-3 rounded-sm text-xs font-bold font-headline uppercase tracking-widest hover:bg-[#93000a] transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95">
+              <span id="agentIcon" class="material-symbols-outlined text-sm">robot_2</span> 
+              <span id="agentText">Validate Official Status</span>
+            </button>
+          </div>
+          <div id="agentOut" class="hidden mt-4 p-4 bg-primary-container text-on-primary-container font-mono text-[11px] leading-relaxed max-h-48 overflow-y-auto scanline shadow-inner rounded-sm border border-black z-0"></div>
+        </div>
       </div>
-    </section>
+    </div>
 
-    <!-- ─── Footer ─── -->
-    <footer class="mt-8 sm:mt-10 text-center text-[10px] sm:text-xs text-slate-900 font-light tracking-wide mb-12 stagger-4">
-      <p>API SENTINEL v1.0 • Technical Illusion Enabled</p>
-    </footer>
-  </div>
 
-  <!-- ══════════ Client-Side JS ══════════ -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-12">
+      <!-- Active Monitors List (History view logic) -->
+      <div class="lg:col-span-8 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-primary-container/10 pb-4 gap-4">
+          <div class="flex items-center gap-4">
+            <span class="bg-primary-container text-on-primary-container px-3 py-1 text-[10px] font-bold tracking-widest rounded-sm">TRANSMISSIONS</span>
+            <h2 class="font-headline font-black text-lg sm:text-xl uppercase tracking-tighter">Transmission Log</h2>
+          </div>
+          <span id="historyCountLabel" class="text-[10px] font-bold opacity-50 font-mono tracking-tighter uppercase shrink-0">Records: <%= checks.length %> / 10</span>
+        </div>
+
+        <div class="space-y-4" id="historyContainer">
+          <!-- EJS Loops over checks -->
+          <% if (checks.length === 0) { %>
+            <div class="p-8 text-center bg-surface-container-low border border-primary-container/10 border-dashed rounded-sm">
+              <span class="material-symbols-outlined text-4xl opacity-20 mb-2">satellite_alt</span>
+              <p class="text-xs font-bold font-headline uppercase tracking-widest opacity-50">No Transmissions Recorded</p>
+            </div>
+          <% } else { %>
+            <% checks.forEach(check => { %>
+              <% const isUp = check.status === 'UP'; %>
+              <div class="<%= isUp ? 'bg-surface-container-low hover:bg-surface-container-high' : 'bg-error-container/20 hover:bg-error-container/30' %> transition-all flex flex-col sm:flex-row items-stretch border border-primary-container/5 shadow-[0_1px_2px_rgba(0,0,0,0.02)] rounded-sm">
+                <div class="w-1.5 sm:w-2 <%= isUp ? 'bg-green-pip' : 'bg-error text-error' %> group-hover:w-3 transition-all"></div>
+                <div class="flex-1 p-4 sm:p-6 grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6 items-center">
+                  <div class="md:col-span-2 space-y-1">
+                    <div class="flex items-center gap-2">
+                      <span class="text-[10px] sm:text-[11px] font-black <%= isUp ? 'text-green-600' : 'text-error' %> uppercase tracking-widest"><%= check.status %></span>
+                      <span class="text-[10px] text-on-surface/50 font-mono">ID:<%= check.id.substring(0,6) %></span>
+                    </div>
+                    <h3 class="font-mono text-xs sm:text-sm font-bold truncate max-w-[200px] sm:max-w-full text-primary" title="<%= check.url %>"><%= check.url %></h3>
+                  </div>
+                  
+                  <div class="flex items-center justify-start md:justify-center gap-4 border-t md:border-none border-primary-container/5 pt-3 md:pt-0">
+                    <div class="w-2.5 h-2.5 rounded-full <%= isUp ? 'bg-green-pip glow-green' : 'bg-error glow-error' %>"></div>
+                    <div>
+                      <span class="block text-xl sm:text-[22px] font-black leading-none font-headline tracking-tighter <%= isUp ? 'text-primary' : 'text-error' %>">
+                        <%= check.latencyMs %><span class="text-[10px] font-medium ml-1">ms</span>
+                      </span>
+                    </div>
+                    <div class="w-2h-3 bg-primary/10 ml-2 rounded-sm text-[10px] font-bold font-mono px-2 py-0.5"><%= check.httpCode || 'ERR' %></div>
+                  </div>
+                  
+                  <div class="text-left md:text-right space-y-1 border-t md:border-none border-primary-container/5 pt-3 md:pt-0">
+                    <span class="block text-[9px] sm:text-[10px] font-bold opacity-50 uppercase tracking-widest">Time (Local)</span>
+                    <span class="block font-mono text-[10px] sm:text-[11px] font-bold text-primary"><%= new Date(check.timestamp).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit'}) %></span>
+                  </div>
+                </div>
+              </div>
+            <% }); %>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Recent Activity Log Section -->
+      <aside class="lg:col-span-4 flex flex-col space-y-6">
+        <div class="flex items-center gap-4 border-b border-primary-container/10 pb-4">
+          <span class="bg-primary text-on-primary px-3 py-1 text-[10px] font-bold tracking-widest uppercase rounded-sm">System_Log</span>
+          <h2 class="font-headline font-black text-lg uppercase tracking-tighter">Raw Output</h2>
+        </div>
+        <div class="bg-primary-container p-4 sm:p-6 flex-1 scanline relative overflow-hidden min-h-[300px] shadow-inner rounded-sm border-t border-black/20">
+          <div class="relative z-10 space-y-5" id="logContainer">
+            <% if (checks.length === 0) { %>
+              <div class="text-on-primary-container/40 font-mono text-[11px] font-bold uppercase tracking-widest">AWAITING INITIALIZATION...</div>
+            <% } else { %>
+              <% checks.slice(0, 7).forEach(check => { %>
+                <div class="flex gap-3 sm:gap-4 anim-fade">
+                  <span class="text-on-primary-container/40 font-mono text-[9px] pt-1 whitespace-nowrap">
+                    <%= new Date(check.timestamp).toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit', second:'2-digit'}) %>
+                  </span>
+                  <div class="flex-1">
+                    <span class="block <%= check.status==='UP' ? 'text-secondary-fixed' : 'text-tertiary-fixed-dim' %> font-bold text-[10px] uppercase tracking-wider">
+                      [<%= check.status %>] <%= check.httpCode || 'ERR' %>
+                    </span>
+                    <p class="text-on-primary-container/70 text-[10px] sm:text-[11px] font-mono mt-1 break-words leading-relaxed">
+                      <%= check.url %> (<%= check.latencyMs %>ms)
+                      <%= check.error ? ` ERROR_TRACE: ${check.error}` : '' %>
+                    </p>
+                  </div>
+                </div>
+              <% }) %>
+            <% } %>
+          </div>
+          <!-- Decorative element -->
+          <div class="absolute bottom-4 right-4 opacity-[0.03] pointer-events-none">
+            <span class="material-symbols-outlined text-8xl sm:text-9xl text-on-primary-container">monitoring</span>
+          </div>
+        </div>
+        
+        <div class="bg-surface-container-high border border-primary-container/10 shadow-sm p-4 flex items-center justify-between rounded-sm">
+          <span class="text-[10px] font-bold uppercase tracking-widest text-primary">Network Load</span>
+          <div class="flex gap-1" id="pulseIndicator">
+            <div class="h-4 w-1.5 bg-primary"></div>
+            <div class="h-4 w-1.5 bg-primary"></div>
+            <div class="h-4 w-1.5 bg-primary opacity-30"></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- BottomNavBar (Mobile Only) -->
+  <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center bg-[#131b2e] border-t border-white/10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+    <button class="flex flex-col items-center justify-center text-secondary-fixed p-3 w-full">
+      <span class="material-symbols-outlined mb-1">analytics</span>
+      <span class="font-headline text-[10px] font-bold uppercase tracking-widest">MONITOR CORE</span>
+    </button>
+  </nav>
+
+  <!-- Visual Anchor - System Footer (Desktop) -->
+  <footer class="hidden md:flex fixed bottom-0 w-full bg-primary-container border-t border-white/5 text-on-primary-container/30 px-6 py-2 items-center justify-between text-[9px] font-mono uppercase tracking-[0.3em] z-50 shadow-inner">
+    <span>Build: SENTINEL-V4.2.0-STABLE</span>
+    <div class="flex gap-8">
+      <span>Uptime: 99.999%</span>
+      <span>Region: LOCAL</span>
+      <span>API SENTINEL © 2024</span>
+    </div>
+  </footer>
+
   <script>
+    // System logic for interacting with our backend APIs
+
     const form = document.getElementById('apiForm');
-    const urlInput = document.getElementById('urlInput');
+    const input = document.getElementById('urlInput');
     const checkBtn = document.getElementById('checkBtn');
     const btnText = document.getElementById('btnText');
-    const btnIconIdle = document.getElementById('btnIconIdle');
-    const btnIconLoading = document.getElementById('btnIconLoading');
-    const resultPanel = document.getElementById('resultPanel');
-    const statusDot = document.getElementById('statusDot');
-    const statusText = document.getElementById('statusText');
-    const latencyValue = document.getElementById('latencyValue');
-    const latencyBar = document.getElementById('latencyBar');
-    const httpCode = document.getElementById('httpCode');
-    const errorMsg = document.getElementById('errorMsg');
-    const resultTimestamp = document.getElementById('resultTimestamp');
-    const validateSection = document.getElementById('validateSection');
-    const validateBtn = document.getElementById('validateBtn');
-    const validateResult = document.getElementById('validateResult');
-    const validateStatus = document.getElementById('validateStatus');
-    const historyBody = document.getElementById('historyBody');
-    const logCount = document.getElementById('logCount');
+    const btnIcon = document.getElementById('btnIcon');
 
-    let lastCheckUrl = '';
+    // Live panel
+    const livePanel = document.getElementById('liveResultPanel');
+    const resIcon = document.getElementById('resIcon');
+    const resDot = document.getElementById('resDot');
+    const resCode = document.getElementById('resCode');
+    const resLat = document.getElementById('resLat');
+    const resLatBar = document.getElementById('resLatBar');
+    const resTimestamp = document.getElementById('resTimestamp');
+    const resErrBody = document.getElementById('resErrBody');
+
+    // Agent panel
+    const agentUI = document.getElementById('agentUI');
+    const agentBtn = document.getElementById('agentBtn');
+    const agentOut = document.getElementById('agentOut');
+    const agentIcon = document.getElementById('agentIcon');
+    const agentText = document.getElementById('agentText');
+
+    let currentScanUrl = '';
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const url = urlInput.value.trim();
+      const url = input.value.trim();
       if (!url) return;
+      currentScanUrl = url;
 
-      lastCheckUrl = url;
-
-      // Loading state
+      // Reset UI state
       checkBtn.disabled = true;
-      btnText.textContent = 'Scanning...';
-      btnIconIdle.classList.add('hidden');
-      btnIconLoading.classList.remove('hidden');
+      btnText.textContent = "SCANNING";
+      btnIcon.textContent = "sync";
+      btnIcon.classList.add("spinning");
 
       try {
         const res = await fetch('/check', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url }),
+          body: JSON.stringify({ url })
         });
         const data = await res.json();
+        
+        renderLivePanel(data);
+        
+        // Refresh the underlying logs by refetching HTML and replacing HTML blocks
+        fetch('/')
+          .then(r => r.text())
+          .then(html => {
+             const doc = new DOMParser().parseFromString(html, 'text/html');
+             document.getElementById('historyContainer').innerHTML = doc.getElementById('historyContainer').innerHTML;
+             document.getElementById('logContainer').innerHTML = doc.getElementById('logContainer').innerHTML;
+             document.getElementById('historyCountLabel').textContent = doc.getElementById('historyCountLabel').textContent;
+          });
 
-        if (res.ok) {
-          showResult(data);
-          updateHistory(data);
-        } else {
-          alert(data.error || 'Check failed');
-        }
       } catch (err) {
-        alert('Network error: ' + err.message);
+        alert("Scan Error: " + err.message);
       } finally {
         checkBtn.disabled = false;
-        btnText.textContent = 'Initiate Check';
-        btnIconIdle.classList.remove('hidden');
-        btnIconLoading.classList.add('hidden');
+        btnText.textContent = "Start Scan";
+        btnIcon.textContent = "rocket_launch";
+        btnIcon.classList.remove("spinning");
+        input.value = '';
       }
     });
 
-    function showResult(data) {
-      resultPanel.classList.remove('hidden');
-      // force re-animation
-      resultPanel.querySelector('div').classList.remove('animate-fadein');
-      void resultPanel.querySelector('div').offsetWidth;
-      resultPanel.querySelector('div').classList.add('animate-fadein');
+    function renderLivePanel(data) {
+      livePanel.classList.remove('hidden');
+      // re-trigger animation
+      livePanel.classList.remove('anim-fade');
+      void livePanel.offsetWidth;
+      livePanel.classList.add('anim-fade');
 
       const isUp = data.status === 'UP';
 
-      // Status dot
-      statusDot.className = `w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center ${isUp ? 'bg-green-500/20 glow-green' : 'bg-red-500/20 glow-red'}`;
-      statusDot.innerHTML = `<span class="w-6 h-6 rounded-full ${isUp ? 'bg-green-400' : 'bg-red-400'}"></span>`;
+      resTimestamp.textContent = new Date(data.timestamp).toLocaleTimeString('en-US');
+      resCode.textContent = data.httpCode || 'ERR';
+      resLat.innerHTML = `${data.latencyMs}<span class="text-sm font-medium ml-1">ms</span>`;
+      
+      const p = Math.min(100, Math.max(5, (data.latencyMs / 5000) * 100));
+      resLatBar.style.width = `${p}%`;
 
-      // Status text
-      statusText.textContent = data.status;
-      statusText.className = `text-2xl font-bold tracking-wider ${isUp ? 'text-green-600' : 'text-red-600'}`;
+      resDot.className = `w-12 h-12 rounded-full flex items-center justify-center filter drop-shadow-sm shrink-0 ${isUp ? 'bg-green-500 glow-green' : 'bg-[#ef4444] glow-error'}`;
+      resIcon.textContent = isUp ? 'check_circle' : 'error';
+      resCode.className = `font-mono text-3xl font-black ${isUp ? 'text-green-600' : 'text-error'}`;
+      resLat.className = `font-headline text-3xl font-black ${isUp ? 'text-primary' : 'text-error'}`;
+      resLatBar.className = `h-full transition-all duration-500 ease-out ${isUp ? 'bg-green-500' : 'bg-error'}`;
 
-      // Latency
-      latencyValue.textContent = data.latencyMs;
-      const latencyPct = Math.min(100, (data.latencyMs / 2000) * 100);
-      const latencyColor = data.latencyMs < 300 ? 'bg-green-500' : data.latencyMs < 1000 ? 'bg-amber-500' : 'bg-red-500';
-      latencyBar.className = `h-full rounded-full bar-grow ${latencyColor}`;
-      latencyBar.style.width = latencyPct + '%';
-
-      // HTTP code
-      httpCode.textContent = data.httpCode || 'ERR';
-      httpCode.className = `text-4xl font-bold font-mono ${isUp ? 'text-green-600' : 'text-red-600'}`;
-
-      // Error message
       if (data.error) {
-        errorMsg.textContent = data.error;
-        errorMsg.classList.remove('hidden');
+        resErrBody.textContent = `CRITICAL TRACE >> ${data.error}`;
+        resErrBody.classList.remove('hidden');
       } else {
-        errorMsg.classList.add('hidden');
+        resErrBody.classList.add('hidden');
       }
 
-      // Timestamp
-      resultTimestamp.textContent = new Date(data.timestamp).toLocaleString('en-US', {
-        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
-      });
-
-      // Validate section
       if (!isUp) {
-        validateSection.classList.remove('hidden');
-        validateResult.classList.add('hidden');
+        agentUI.classList.remove('hidden');
+        agentOut.classList.add('hidden');
       } else {
-        validateSection.classList.add('hidden');
+        agentUI.classList.add('hidden');
       }
     }
 
-    function updateHistory(data) {
-      // Reload the page to re-render the EJS template with fresh data
-      // For a smoother UX, we rebuild the table client-side
-      const isUp = data.status === 'UP';
-      const emptyRow = historyBody.querySelector('td[colspan="5"]');
-      if (emptyRow) emptyRow.parentElement.remove();
-
-      const row = document.createElement('tr');
-      row.className = 'hover:bg-slate-50/80 transition-colors duration-300 animate-fadein';
-      row.innerHTML = `
-        <td class="px-4 sm:px-8 py-3 sm:py-4 whitespace-nowrap">
-          <span class="inline-flex items-center gap-2">
-            <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${isUp ? 'bg-green-500' : 'bg-red-500'}"></span>
-            <span class="${isUp ? 'text-green-600' : 'text-red-600'} font-semibold text-[10px] sm:text-xs tracking-wider">${data.status}</span>
-          </span>
-        </td>
-        <td class="px-4 sm:px-8 py-3 sm:py-4 text-slate-600 font-mono text-[10px] sm:text-xs max-w-[150px] sm:max-w-[250px] truncate" title="${data.url}">${data.url}</td>
-        <td class="px-4 sm:px-8 py-3 sm:py-4 text-center whitespace-nowrap">
-          <span class="inline-block font-mono px-2 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-semibold ${data.httpCode && data.httpCode < 400 ? 'bg-green-100/50 text-green-700' : 'bg-red-100/50 text-red-700'}">
-            ${data.httpCode || 'ERR'}
-          </span>
-        </td>
-        <td class="px-4 sm:px-8 py-3 sm:py-4 text-center whitespace-nowrap">
-          <div class="inline-flex items-center justify-center gap-2 sm:gap-3">
-            <div class="w-10 sm:w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner hidden min-[400px]:block">
-              <div class="h-full rounded-full ${data.latencyMs < 300 ? 'bg-green-500' : data.latencyMs < 1000 ? 'bg-amber-500' : 'bg-red-500'}"
-                   style="width: ${Math.min(100, (data.latencyMs / 2000) * 100)}%"></div>
-            </div>
-            <span class="text-[10px] sm:text-xs font-mono text-slate-500 w-8 sm:w-12 text-right">${data.latencyMs}ms</span>
-          </div>
-        </td>
-        <td class="px-4 sm:px-8 py-3 sm:py-4 text-right font-mono text-[10px] sm:text-xs text-slate-400 whitespace-nowrap">
-          ${new Date(data.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-        </td>
-      `;
-
-      historyBody.prepend(row);
-
-      // Cap visible rows at 10
-      while (historyBody.children.length > 10) {
-        historyBody.removeChild(historyBody.lastChild);
-      }
-
-      logCount.textContent = `${Math.min(historyBody.children.length, 10)} / 10 records`;
-    }
-
-    // Validate button
-    validateBtn.addEventListener('click', async () => {
-      validateBtn.disabled = true;
-      validateBtn.innerHTML = `
-        <svg class="w-4 h-4 radar-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        Agent Scanning...
-      `;
-
+    agentBtn.addEventListener('click', async () => {
+      agentBtn.disabled = true;
+      agentIcon.textContent = "sync";
+      agentIcon.classList.add('spinning');
+      agentText.textContent = "INITIALIZING AGENT...";
+      
       try {
         const res = await fetch('/validate', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: lastCheckUrl }),
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ url: currentScanUrl })
         });
         const data = await res.json();
-
-        validateResult.classList.remove('hidden');
-
-        const statusMap = {
-          'operational': { color: 'text-green-600', icon: '✓', label: 'OPERATIONAL' },
-          'degraded':    { color: 'text-amber-500', icon: '⚠', label: 'DEGRADED' },
-          'unknown':     { color: 'text-slate-500', icon: '?', label: 'UNKNOWN' },
-        };
-        const s = statusMap[data.officialStatus] || statusMap.unknown;
-
-        validateStatus.innerHTML = `
-          <span class="${s.color} font-semibold">${s.icon} Official Status: ${s.label}</span>
-          ${data.statusPageUrl ? `<br><a href="${data.statusPageUrl}" target="_blank" class="text-cyan-600 hover:text-cyan-700 underline text-xs mt-1 inline-block">${data.statusPageUrl}</a>` : ''}
-          ${data.error ? `<br><span class="text-xs text-slate-500 mt-1 inline-block">Note: ${data.error}</span>` : ''}
-          ${data.details ? `<br><span class="text-xs text-slate-500 mt-1 inline-block">${data.details}</span>` : ''}
-        `;
-      } catch (err) {
-        validateResult.classList.remove('hidden');
-        validateStatus.innerHTML = `<span class="text-red-500">Error: ${err.message}</span>`;
-      } finally {
-        validateBtn.disabled = false;
-        validateBtn.innerHTML = `
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
-          Launch Validation Agent
-        `;
-      }
-    });
-
-    // Set initial log count from server-rendered data
-    document.addEventListener('DOMContentLoaded', () => {
-      const rows = historyBody.querySelectorAll('tr');
-      const hasEmpty = historyBody.querySelector('td[colspan="5"]');
-      logCount.textContent = `${hasEmpty ? 0 : rows.length} / 10 records`;
-
-      // Set up BorderGlow effect for all cards
-      const applyBorderGlow = () => {
-        const cards = document.querySelectorAll('.border-glow-card');
         
-        cards.forEach(card => {
-          const getCenterOfElement = (el) => {
-            const rect = el.getBoundingClientRect();
-            return [rect.width / 2, rect.height / 2];
-          };
+        agentOut.classList.remove('hidden');
+        let html = `> AGENT RUN COMPLETE<br>> TARGET: ${data.service}<br>> OFFICIAL STATUS: <strong class="${data.officialStatus === 'operational' ? 'text-secondary-fixed' : 'text-tertiary-fixed-dim'}">${(data.officialStatus || 'unknown').toUpperCase()}</strong><br>`;
+        
+        if (data.statusPageUrl) {
+          html += `> SOURCE: <a href="${data.statusPageUrl}" target="_blank" class="underline text-blue-300">Status Page Link</a><br>`;
+        }
+        if (data.details) {
+          html += `> DETAILS: ${data.details}<br>`;
+        }
+        if (data.error) {
+          html += `> ERROR TRACE: <span class="text-tertiary-fixed-dim">${data.error}</span>`;
+        }
+        
+        agentOut.innerHTML = html;
 
-          const getEdgeProximity = (el, x, y) => {
-            const [cx, cy] = getCenterOfElement(el);
-            const dx = x - cx;
-            const dy = y - cy;
-            let kx = Infinity;
-            let ky = Infinity;
-            if (dx !== 0) kx = cx / Math.abs(dx);
-            if (dy !== 0) ky = cy / Math.abs(dy);
-            return Math.min(Math.max(1 / Math.min(kx, ky), 0), 1);
-          };
-
-          const getCursorAngle = (el, x, y) => {
-            const [cx, cy] = getCenterOfElement(el);
-            const dx = x - cx;
-            const dy = y - cy;
-            if (dx === 0 && dy === 0) return 0;
-            const radians = Math.atan2(dy, dx);
-            let degrees = radians * (180 / Math.PI) + 90;
-            if (degrees < 0) degrees += 360;
-            return degrees;
-          };
-
-          card.addEventListener('pointermove', (e) => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            const edge = getEdgeProximity(card, x, y);
-            const angle = getCursorAngle(card, x, y);
-
-            card.style.setProperty('--edge-proximity', `${(edge * 100).toFixed(3)}`);
-            card.style.setProperty('--cursor-angle', `${angle.toFixed(3)}deg`);
-          });
-        });
-      };
-      
-      applyBorderGlow();
+      } catch (err) {
+        agentOut.classList.remove('hidden');
+        agentOut.innerHTML = `<span class="text-tertiary-fixed-dim">> FATAL AGENT ERROR: ${err.message}</span>`;
+      } finally {
+         agentBtn.disabled = false;
+         agentIcon.textContent = "robot_2";
+         agentIcon.classList.remove('spinning');
+         agentText.textContent = "Validation Complete";
+      }
     });
   </script>
 </body>
