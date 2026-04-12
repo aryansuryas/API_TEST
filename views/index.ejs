@@ -97,7 +97,10 @@
     .spinning { animation: spin 1s linear infinite; }
   </style>
 </head>
-<body class="bg-background font-body text-on-surface min-h-screen pb-24 md:pb-0 font-medium tracking-tight">
+<body class="bg-background font-body text-on-surface min-h-screen pb-24 md:pb-0 font-medium tracking-tight relative z-0">
+
+  <!-- Matrix BG -->
+  <canvas id="matrix-bg" class="fixed inset-0 w-full h-full pointer-events-none z-[-1] opacity-40 blur-[3px]"></canvas>
 
   <!-- TopAppBar -->
   <header class="bg-[#fdfbf7] border-b border-primary-container/10 sm:border-none rounded-none w-full top-0 sticky z-50 shadow-sm sm:shadow-none">
@@ -473,6 +476,54 @@
          agentText.textContent = "Validation Complete";
       }
     });
+
+    // ─ Matrix Rain Background Effect (Cream adjusted)
+    const canvas = document.getElementById('matrix-bg');
+    const ctx = canvas.getContext('2d');
+    
+    // Set exact sizing
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Characters (Katakana + Latin + Digits)
+    const chars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    const fontSize = 16;
+    let columns = canvas.width / fontSize;
+    let drops = [];
+
+    // Initialize drops
+    for (let x = 0; x < columns; x++) {
+      drops[x] = 1;
+    }
+
+    function drawMatrix() {
+      // Create trailing fade with the Cream base color (hex #fdfbf7 -> rgb 253, 251, 247)
+      ctx.fillStyle = 'rgba(253, 251, 247, 0.15)'; 
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#10b981'; // The authentic green pip color
+      ctx.font = fontSize + 'px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+
+      for (let i = 0; i < drops.length; i++) {
+        // Random character
+        const text = chars[Math.floor(Math.random() * chars.length)];
+        
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        // Reset drops dynamically or slowly bring them back to top
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+    // Render loop roughly @ 30fps
+    setInterval(drawMatrix, 40);
   </script>
 </body>
 </html>
