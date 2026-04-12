@@ -109,7 +109,7 @@
 <body class="bg-background font-body text-on-surface min-h-screen pb-24 md:pb-0 font-medium tracking-tight relative z-0">
 
   <!-- Matrix BG -->
-  <canvas id="matrix-bg" class="fixed inset-0 w-full h-full pointer-events-none z-[-1] opacity-40 blur-[3px]"></canvas>
+  <canvas id="matrix-bg" class="fixed inset-0 w-full h-full pointer-events-none z-[-1] opacity-60 blur-[2px]"></canvas>
 
   <!-- TopAppBar -->
   <header class="bg-[#FBF3D1] border-b border-primary-container/10 sm:border-none rounded-none w-full top-0 sticky z-50 shadow-sm sm:shadow-none">
@@ -511,20 +511,20 @@
 
     function drawMatrix() {
       // Create trailing fade with the Cream base color (hex #fdfbf7 -> rgb 253, 251, 247)
-      ctx.fillStyle = 'rgba(251, 243, 209, 0.15)'; /* #FBF3D1 fade */
+      ctx.fillStyle = 'rgba(251, 243, 209, 0.08)'; /* slow fade so letters stay visible longer */
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = '#10b981'; // The authentic green pip color
-      ctx.font = fontSize + 'px "JetBrains Mono", monospace';
-      ctx.textAlign = 'center';
-
+      // Use two tones: bright lead + dark trail for depth
       for (let i = 0; i < drops.length; i++) {
-        // Random character
         const text = chars[Math.floor(Math.random() * chars.length)];
-        
+
+        // Lead character is brightest
+        ctx.fillStyle = '#1a7a3a'; /* dark forest green */
+        // Every ~10th column gets a brighter head for depth
+        if (Math.random() > 0.85) ctx.fillStyle = '#22a84e';
+
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
-        // Reset drops dynamically or slowly bring them back to top
         if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
           drops[i] = 0;
         }
