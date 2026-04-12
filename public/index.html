@@ -131,6 +131,28 @@
       </div>
     </section>
 
+    <!-- ══ Live Monitors (Pre-seeded, auto-refresh 30s) ══ -->
+    <section id="liveMonitorsSection">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-primary-container/10 pb-6 gap-4 mb-6">
+        <div class="flex items-center gap-4">
+          <span class="bg-green-800 text-green-200 px-4 py-2 text-xs font-bold tracking-widest rounded-md font-headline uppercase">LIVE_FEED</span>
+          <h2 class="font-libre font-bold text-xl sm:text-2xl italic">Live Global Monitors</h2>
+        </div>
+        <div class="flex items-center gap-3">
+          <span id="nextRefreshLabel" class="text-xs font-mono font-bold opacity-50 uppercase tracking-widest">Refreshing in 30s</span>
+          <button id="refreshNowBtn" class="flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded-md text-xs font-bold font-headline uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95">
+            <span id="refreshIcon" class="material-symbols-outlined text-sm">refresh</span> Refresh Now
+          </button>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4" id="liveMonitorsGrid">
+        <!-- Skeleton cards shown while loading -->
+        <div class="col-span-full text-center py-10 text-sm font-bold font-headline uppercase tracking-widest opacity-40 flex items-center justify-center gap-3">
+          <span class="material-symbols-outlined spinning text-xl">sync</span> Initializing global monitors...
+        </div>
+      </div>
+    </section>
+
     <!-- ══ Live Result Panel (hidden until scan) ══ -->
     <div id="liveResultPanel" class="hidden border border-primary-container/10 rounded-sm overflow-hidden shadow-md anim-fade">
       <div class="p-8 sm:p-10 bg-surface-container-low">
@@ -435,6 +457,158 @@
         agentText.textContent = 'Validate Official Status';
       }
     });
+
+    // ── Pre-seeded Live Monitors ──────────────────────────
+    const PRESET_MONITORS = [
+      { label: 'Google',        url: 'https://www.google.com',              tier: 'best',  icon: 'speed' },
+      { label: 'Cloudflare',    url: 'https://www.cloudflare.com',          tier: 'best',  icon: 'shield' },
+      { label: 'GitHub',        url: 'https://github.com',                  tier: 'mid',   icon: 'code' },
+      { label: 'Wikipedia',     url: 'https://en.wikipedia.org',            tier: 'mid',   icon: 'menu_book' },
+      { label: 'StackOverflow', url: 'https://stackoverflow.com',           tier: 'mid',   icon: 'help' },
+      { label: 'HTTPBin',       url: 'https://httpbin.org/delay/1',         tier: 'slow',  icon: 'hourglass_bottom' },
+      { label: 'JSONPlaceholder',url: 'https://jsonplaceholder.typicode.com', tier: 'slow', icon: 'database' },
+    ];
+
+    // In-memory state per monitor
+    const monitorState = {};
+    PRESET_MONITORS.forEach(m => { monitorState[m.url] = { status: 'checking', latencyMs: null, httpCode: null, lastChecked: null, history: [] }; });
+
+    const grid = document.getElementById('liveMonitorsGrid');
+    const refreshNowBtn = document.getElementById('refreshNowBtn');
+    const refreshIcon = document.getElementById('refreshIcon');
+    const nextRefreshLabel = document.getElementById('nextRefreshLabel');
+
+    let countdown = 30;
+    let countdownTimer = null;
+
+    function tierMeta(tier) {
+      if (tier === 'best') return { label: 'FAST', badge: 'bg-green-100 text-green-800', dot: 'bg-green-500' };
+      if (tier === 'mid')  return { label: 'AVG',  badge: 'bg-amber-100 text-amber-800', dot: 'bg-amber-400' };
+      return                       { label: 'SLOW', badge: 'bg-red-100 text-red-800',     dot: 'bg-red-500' };
+    }
+
+    function latencyColor(ms) {
+      if (ms === null) return 'text-primary';
+      if (ms < 200)   return 'text-green-700';
+      if (ms < 800)   return 'text-amber-600';
+      return                 'text-red-600';
+    }
+
+    function renderMonitorCard(m, state) {
+      const tm = tierMeta(m.tier);
+      const isUp = state.status === 'UP';
+      const isChecking = state.status === 'checking';
+      const timeStr = state.lastChecked
+        ? new Date(state.lastChecked).toLocaleTimeString('en-US', {hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'})
+        : '—';
+
+      // Spark history bars (last 6 checks)
+      const sparkBars = state.history.slice(-6).map(h => {
+        const pct = Math.min(100, (h.latencyMs / 1500) * 100);
+        const col = h.status === 'UP' ? (h.latencyMs < 300 ? '#22c55e' : '#f59e0b') : '#ef4444';
+        return `<div title="${h.latencyMs}ms" style="height:${Math.max(4, pct * 0.32)}px; background:${col}; width:6px; border-radius:2px; align-self:flex-end"></div>`;
+      }).join('');
+
+      return `
+        <div class="relative ${isUp ? 'bg-surface-container-low hover:bg-surface-container-high' : isChecking ? 'bg-surface-container-low' : 'bg-red-50 hover:bg-red-100'} border border-primary-container/10 rounded-md shadow-sm transition-all overflow-hidden">
+          <div class="w-full h-1 ${isUp ? 'bg-green-500' : isChecking ? 'bg-amber-400' : 'bg-red-500'}"></div>
+          <div class="p-5">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-2xl opacity-60">${m.icon}</span>
+                <div>
+                  <h3 class="font-libre font-bold text-base italic text-primary">${m.label}</h3>
+                  <p class="font-mono text-xs text-on-surface/50 truncate max-w-[160px]">${m.url.replace('https://','')}</p>
+                </div>
+              </div>
+              <div class="flex flex-col items-end gap-1">
+                <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${tm.badge}">${tm.label}</span>
+                <span class="flex items-center gap-1 text-[10px] font-bold ${isChecking ? 'text-amber-500' : isUp ? 'text-green-600' : 'text-red-600'} uppercase tracking-wider">
+                  <span class="w-1.5 h-1.5 rounded-full ${isChecking ? 'bg-amber-400 spinning' : isUp ? 'bg-green-500 glow-green' : 'bg-red-500 glow-error'}"></span>
+                  ${isChecking ? 'SCANNING' : state.status}
+                </span>
+              </div>
+            </div>
+
+            <div class="flex items-end justify-between">
+              <div>
+                <p class="text-[10px] font-bold opacity-50 uppercase tracking-widest mb-1">Latency</p>
+                <span class="text-3xl font-black font-headline ${latencyColor(state.latencyMs)}">${state.latencyMs !== null ? state.latencyMs : '—'}<span class="text-xs font-medium ml-1">${state.latencyMs !== null ? 'ms' : ''}</span></span>
+              </div>
+              <div class="flex flex-col items-end gap-1">
+                <span class="text-[10px] font-bold opacity-50 uppercase tracking-widest">HTTP</span>
+                <span class="font-mono text-sm font-bold ${isUp ? 'text-green-700' : 'text-red-600'}">${state.httpCode || '—'}</span>
+              </div>
+            </div>
+
+            <!-- Spark history -->
+            ${state.history.length > 0 ? `
+              <div class="mt-4 pt-3 border-t border-primary-container/10">
+                <p class="text-[9px] font-bold opacity-40 uppercase tracking-widest mb-2">Last ${state.history.length} checks</p>
+                <div style="display:flex; gap:3px; align-items:flex-end; height:36px">${sparkBars}</div>
+              </div>` : ''}
+
+            <div class="mt-3 pt-3 border-t border-primary-container/10 flex items-center justify-between">
+              <span class="text-[10px] font-mono text-on-surface/40">Last check: ${timeStr}</span>
+              ${state.httpCode ? `<span class="text-[10px] font-mono text-on-surface/30">${new Date(state.lastChecked).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>` : ''}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderAllMonitors() {
+      grid.innerHTML = PRESET_MONITORS.map(m => renderMonitorCard(m, monitorState[m.url])).join('');
+    }
+
+    async function checkMonitor(m) {
+      monitorState[m.url].status = 'checking';
+      renderAllMonitors();
+      try {
+        const res = await fetch('/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: m.url })
+        });
+        const data = await res.json();
+        const prev = monitorState[m.url];
+        const hist = [...(prev.history || []), { latencyMs: data.latencyMs, status: data.status }].slice(-10);
+        monitorState[m.url] = { status: data.status, latencyMs: data.latencyMs, httpCode: data.httpCode, lastChecked: data.timestamp, history: hist };
+      } catch {
+        monitorState[m.url] = { ...monitorState[m.url], status: 'DOWN', latencyMs: null, httpCode: null, lastChecked: new Date().toISOString() };
+      }
+      renderAllMonitors();
+    }
+
+    async function runAllMonitors() {
+      refreshIcon.classList.add('spinning');
+      refreshNowBtn.disabled = true;
+      // Stagger checks so they don't all fire at once
+      for (const m of PRESET_MONITORS) {
+        await checkMonitor(m);
+        await new Promise(r => setTimeout(r, 200));
+      }
+      refreshIcon.classList.remove('spinning');
+      refreshNowBtn.disabled = false;
+      resetCountdown();
+    }
+
+    function resetCountdown() {
+      countdown = 30;
+      clearInterval(countdownTimer);
+      countdownTimer = setInterval(() => {
+        countdown--;
+        nextRefreshLabel.textContent = `Refreshing in ${countdown}s`;
+        if (countdown <= 0) {
+          clearInterval(countdownTimer);
+          runAllMonitors();
+        }
+      }, 1000);
+    }
+
+    refreshNowBtn.addEventListener('click', runAllMonitors);
+
+    // Kick off on load
+    runAllMonitors();
 
     // ── Matrix Rain ───────────────────────────────────────
     const canvas = document.getElementById('matrix-bg');
