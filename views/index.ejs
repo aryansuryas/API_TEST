@@ -40,12 +40,12 @@
             "tertiary": "#000000",
             "on-tertiary-container": "#da5a5b",
             "tertiary-container": "#410006",
-            "background": "#fdfbf7", /* refined cream */
+            "background": "#FBF3D1", /* warm parchment cream */
             "surface-container-highest": "#f0ebde",
             "secondary-fixed": "#6dfe9c",
             "primary-container": "#131b2e",
-            "surface-bright": "#fdfbf7",
-            "surface": "#fdfbf7",
+            "surface-bright": "#FBF3D1",
+            "surface": "#FBF3D1",
             "on-background": "#1b1d0e",
             "tertiary-fixed": "#ffdad8",
             "tertiary-fixed-dim": "#ffb3b0",
@@ -57,7 +57,7 @@
             "on-secondary-fixed-variant": "#005227",
             "surface-container-lowest": "#ffffff",
             "on-primary-fixed": "#131b2e",
-            "surface-container-low": "#faf8f2",
+            "surface-container-low": "#f8f0cc",
             "on-error": "#ffffff",
             "on-tertiary-fixed": "#410006",
             "secondary-container": "#6dfe9c",
@@ -112,7 +112,7 @@
   <canvas id="matrix-bg" class="fixed inset-0 w-full h-full pointer-events-none z-[-1] opacity-40 blur-[3px]"></canvas>
 
   <!-- TopAppBar -->
-  <header class="bg-[#fdfbf7] border-b border-primary-container/10 sm:border-none rounded-none w-full top-0 sticky z-50 shadow-sm sm:shadow-none">
+  <header class="bg-[#FBF3D1] border-b border-primary-container/10 sm:border-none rounded-none w-full top-0 sticky z-50 shadow-sm sm:shadow-none">
     <div class="flex items-center justify-between px-6 py-4 w-full">
       <div class="flex items-center gap-3">
         <span class="material-symbols-outlined text-slate-900 text-3xl">terminal</span>
@@ -511,7 +511,7 @@
 
     function drawMatrix() {
       // Create trailing fade with the Cream base color (hex #fdfbf7 -> rgb 253, 251, 247)
-      ctx.fillStyle = 'rgba(253, 251, 247, 0.15)'; 
+      ctx.fillStyle = 'rgba(251, 243, 209, 0.15)'; /* #FBF3D1 fade */
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.fillStyle = '#10b981'; // The authentic green pip color
