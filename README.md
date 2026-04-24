@@ -2,5 +2,5 @@
 # API Health tester
 this <a href="https://as-api-health-tester.netlify.app" target="_blank">
  link
-</a> takes u to the website which is ompletely
+</a> takes redirects u to the website which is ompletely
 
